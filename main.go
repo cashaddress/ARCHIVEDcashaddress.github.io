@@ -178,6 +178,11 @@ func EncodeBase58Simplified(b []byte) string {
 		}
 		digits = append(digits, byte(alphabetIdx0))
 	}
+
+	// Temporary fix
+	if digits[0] == 114 {
+		digits[0] = 49
+	}
 	answer := []byte{}
 	for t := len(digits) - 1; t >= 0; t -= 1 {
 		answer = append(answer, byte(alphabet[digits[t]]))
