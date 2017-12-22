@@ -153,7 +153,7 @@ func CheckEncodeBase58(input []byte, version byte) {
 func EncodeBase58Simplified(b []byte) string {
 	// var bigRadix = big.NewInt(58)
 	// var bigZero = big.NewInt(0)
-	alphabetIdx0 := '1'
+	alphabetIdx0 := 0
 	alphabet := "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	digits := []byte{0}
 	for i := 0; i < len(b); i += 1 {
@@ -163,7 +163,6 @@ func EncodeBase58Simplified(b []byte) string {
 			digits[j] = byte(carry % 58)
 			carry = carry / 58
 		}
-
 		for carry > 0 {
 			digits = append(digits, byte(carry%58))
 			carry = carry / 58
@@ -177,11 +176,6 @@ func EncodeBase58Simplified(b []byte) string {
 			break
 		}
 		digits = append(digits, byte(alphabetIdx0))
-	}
-
-	// Temporary fix
-	if digits[len(digits)-1] == 114 {
-		digits[len(digits)-1] = 49
 	}
 	answer := []byte{}
 	for t := len(digits) - 1; t >= 0; t -= 1 {
