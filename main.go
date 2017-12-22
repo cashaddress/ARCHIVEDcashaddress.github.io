@@ -6,6 +6,37 @@ import (
 	"math/big"
 )
 
+// https://github.com/cryptocoinjs/base-x/blob/master/index.js
+// base-x encoding
+// Forked from https://github.com/cryptocoinjs/bs58
+// Originally written by Mike Hearn for BitcoinJ
+// Copyright (c) 2011 Google Inc
+// Ported to JavaScript by Stefan Thomas
+// Merged Buffer refactorings from base58-native by Stephen Pair
+// Copyright (c) 2013 BitPay Inc
+
+// The MIT License (MIT)
+//
+// Copyright base-x contributors (c) 2016
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 // Copyright (c) 2017 Pieter Wuille
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,13 +58,13 @@ import (
 // THE SOFTWARE.
 
 // ISC License
-
+//
 // Copyright (c) 2013-2016 The btcsuite developers
-
+//
 // Permission to use, copy, modify, and distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -57,7 +88,8 @@ var CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 // Assume the input is .toLowerCase() if it starts with "bitcoincash:"
 func main() {
 	// js.Global.Set("bs58", "require('base-x')('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz')")
-	input = js.Global.Get("document").Call("getElementById", "addressToTranslate").Get("value").String()
+	input = "bitcoincash:qqkyasukdy9zllwnj47pysla39zu06rvfyw5kluc3c"
+	//input = js.Global.Get("document").Call("getElementById", "addressToTranslate").Get("value").String()
 	if input[11] == ':' && len(input) == 54 && (input[12] == 'q' || input[12] == 'p') {
 		for a, b := range input[0:11] {
 			if b != rune("bitcoincash"[a]) {
@@ -114,41 +146,44 @@ func CheckEncodeBase58(input []byte, version byte) {
 	b = append(b, h2[:4]...)
 	//fmt.Println("%x", b[len(b)-4:])
 	//println(js.Global.Get("bs58").Call("encode", b).String())
-	js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", EncodeBase58(b))
+
+	//js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", EncodeBase58(b))
+	println(EncodeBase58Simplified(b))
 	//println(EncodeBase58(b))
 }
 
-func EncodeBase58(b []byte) string {
-	//	fmt.Printf("%v, %x\n", b, b)
-	//alphabetIdx0 := []byte{1}
-	var bigRadix = big.NewInt(58)
-	var bigZero = big.NewInt(0)
+func EncodeBase58Simplified(b []byte) string {
+	// var bigRadix = big.NewInt(58)
+	// var bigZero = big.NewInt(0)
 	alphabetIdx0 := '1'
 	alphabet := "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-	x := new(big.Int)
-	x.SetBytes(b)
+	digits := []byte{0}
+	for i := 0; i < len(b); i += 1 {
+		carry := uint64(b[i])
+		for j := 0; j < len(digits); j += 1 {
+			carry += uint64(digits[j]) << 8
+			digits[j] = byte(carry % 58)
+			carry = carry / 58
+		}
 
-	answer := make([]byte, 0, len(b)*136/100)
-	for x.Cmp(bigZero) > 0 {
-		mod := new(big.Int)
-		x.DivMod(x, bigRadix, mod)
-		answer = append(answer, alphabet[mod.Int64()])
+		for carry > 0 {
+			digits = append(digits, byte(carry%58))
+			carry = carry / 58
+		}
 	}
 
+	// TODO: Is this required?
 	// leading zero bytes
 	for _, i := range b {
 		if i != 0 {
 			break
 		}
-		answer = append(answer, byte(alphabetIdx0))
+		digits = append(digits, byte(alphabetIdx0))
 	}
-
-	// reverse
-	alen := len(answer)
-	for i := 0; i < alen/2; i++ {
-		answer[i], answer[alen-1-i] = answer[alen-1-i], answer[i]
+	answer := []byte{}
+	for t := len(digits) - 1; t >= 0; t -= 1 {
+		answer = append(answer, byte(alphabet[digits[t]]))
 	}
-
 	return string(answer)
 }
 
