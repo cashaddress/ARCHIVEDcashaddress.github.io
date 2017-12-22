@@ -180,8 +180,8 @@ func EncodeBase58Simplified(b []byte) string {
 	}
 
 	// Temporary fix
-	if digits[0] == 114 {
-		digits[0] = 49
+	if digits[len(digits)-1] == 114 {
+		digits[len(digits)-1] = 49
 	}
 	answer := []byte{}
 	for t := len(digits) - 1; t >= 0; t -= 1 {
