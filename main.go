@@ -88,8 +88,7 @@ var CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 // Assume the input is .toLowerCase() if it starts with "bitcoincash:"
 func main() {
 	// js.Global.Set("bs58", "require('base-x')('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz')")
-	input = "bitcoincash:qqkyasukdy9zllwnj47pysla39zu06rvfyw5kluc3c"
-	//input = js.Global.Get("document").Call("getElementById", "addressToTranslate").Get("value").String()
+	input = js.Global.Get("document").Call("getElementById", "addressToTranslate").Get("value").String()
 	if input[11] == ':' && len(input) == 54 && (input[12] == 'q' || input[12] == 'p') {
 		for a, b := range input[0:11] {
 			if b != rune("bitcoincash"[a]) {
@@ -147,8 +146,7 @@ func CheckEncodeBase58(input []byte, version byte) {
 	//fmt.Println("%x", b[len(b)-4:])
 	//println(js.Global.Get("bs58").Call("encode", b).String())
 
-	//js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", EncodeBase58(b))
-	println(EncodeBase58Simplified(b))
+	js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", EncodeBase58Simplified(b))
 	//println(EncodeBase58(b))
 }
 
