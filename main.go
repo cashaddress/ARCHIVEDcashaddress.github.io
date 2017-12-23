@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/sha256"
 	"github.com/gopherjs/gopherjs/js"
-	"math/big"
 )
 
 // https://github.com/cryptocoinjs/base-x/blob/master/index.js
@@ -169,7 +168,6 @@ func EncodeBase58Simplified(b []byte) string {
 		}
 	}
 
-	// TODO: Is this required?
 	// leading zero bytes
 	for _, i := range b {
 		if i != 0 {
@@ -177,6 +175,8 @@ func EncodeBase58Simplified(b []byte) string {
 		}
 		digits = append(digits, byte(alphabetIdx0))
 	}
+
+	// reverse
 	answer := []byte{}
 	for t := len(digits) - 1; t >= 0; t -= 1 {
 		answer = append(answer, byte(alphabet[digits[t]]))
@@ -185,78 +185,60 @@ func EncodeBase58Simplified(b []byte) string {
 }
 
 func parseAndConvertOldAddress(oldAddress string) {
-	var bigRadix = big.NewInt(58)
-	var b58 = [256]byte{
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 0, 1, 2, 3, 4, 5, 6,
-		7, 8, 255, 255, 255, 255, 255, 255,
-		255, 9, 10, 11, 12, 13, 14, 15,
-		16, 255, 17, 18, 19, 20, 21, 255,
-		22, 23, 24, 25, 26, 27, 28, 29,
-		30, 31, 32, 255, 255, 255, 255, 255,
-		255, 33, 34, 35, 36, 37, 38, 39,
-		40, 41, 42, 43, 255, 44, 45, 46,
-		47, 48, 49, 50, 51, 52, 53, 54,
-		55, 56, 57, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-		255, 255, 255, 255, 255, 255, 255, 255,
-	}
-	alphabetIdx0 := '1'
-	answer := big.NewInt(0)
-	j := big.NewInt(1)
+	// var ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	// ALPHABET_MAP := make(map[rune]uint8)
+	// for i, e := range ALPHABET {
+	// 	ALPHABET_MAP[e] = uint8(i)
+	// }
+	// fmt.Println(ALPHABET_MAP)
+	ALPHABET_MAP := map[byte]uint8{86: 28, 100: 36, 118: 53, 50: 1, 54: 5, 57: 8, 71: 15,
+		74: 17, 66: 10, 77: 20, 99: 35, 75: 18, 111: 46, 112: 47, 117: 52, 52: 3, 83: 25, 113: 48,
+		67: 11, 68: 12, 98: 34, 104: 40, 121: 56, 85: 27, 122: 57, 109: 44, 115: 50, 56: 7, 72: 16,
+		90: 32, 97: 33, 102: 38, 76: 19, 84: 26, 107: 43, 78: 21, 81: 23, 88: 30, 101: 37, 65: 9,
+		51: 2, 103: 39, 106: 42, 116: 51, 49: 0, 53: 4, 82: 24, 105: 41, 114: 49, 70: 14, 55: 6,
+		69: 13, 87: 29, 89: 31, 120: 55, 80: 22, 110: 45, 119: 54}
 
-	scratch := new(big.Int)
-	for i := len(oldAddress) - 1; i >= 0; i-- {
-		tmp := b58[oldAddress[i]]
-		if tmp == 255 {
+	bytes := []byte{0}
+	for i := 0; i < len(oldAddress); i++ {
+		value := ALPHABET_MAP[oldAddress[i]]
+		if value == 0 && oldAddress[i] != byte('1') {
 			return
 		}
-		scratch.SetInt64(int64(tmp))
-		scratch.Mul(j, scratch)
-		answer.Add(answer, scratch)
-		j.Mul(j, bigRadix)
+		carry := uint64(value)
+		for j := 0; j < len(bytes); j += 1 {
+			carry += uint64(bytes[j]) * 58
+			bytes[j] = byte(carry & 0xff)
+			carry = carry >> 8
+		}
+		for carry > 0 {
+			bytes = append(bytes, byte(carry&0xff))
+			carry = carry >> 8
+		}
 	}
-
-	tmpval := answer.Bytes()
 
 	var numZeros int
 	for numZeros = 0; numZeros < len(oldAddress); numZeros++ {
-		if oldAddress[numZeros] != byte(alphabetIdx0) {
+		if oldAddress[numZeros] != byte('1') {
 			break
 		}
 	}
-	flen := numZeros + len(tmpval)
-	val := make([]byte, flen)
-	copy(val[numZeros:], tmpval)
+	val := make([]byte, numZeros+len(bytes))
+	copy(val[:len(bytes)], bytes)
+
 	if len(val) < 5 {
 		return
 	}
-	version := val[0]
-	h := sha256.Sum256(val[:len(val)-4])
+	answer := []byte{}
+	for t := len(val) - 1; t >= 0; t -= 1 {
+		answer = append(answer, val[t])
+	}
+	version := answer[0]
+	h := sha256.Sum256(answer[:len(answer)-4])
 	h2 := sha256.Sum256(h[:])
-	if h2[0] != val[len(val)-4] || h2[1] != val[len(val)-3] || h2[2] != val[len(val)-2] || h2[3] != val[len(val)-1] {
+	if h2[0] != answer[len(answer)-4] || h2[1] != answer[len(answer)-3] || h2[2] != answer[len(answer)-2] || h2[3] != answer[len(answer)-1] {
 		return
 	}
-	payload := val[1 : len(val)-4]
+	payload := answer[1 : len(answer)-4]
 	if version == 0x00 {
 		craftCashAddress(0, payload)
 	} else if version == 0x05 {
