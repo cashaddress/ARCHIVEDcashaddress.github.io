@@ -38,7 +38,7 @@ document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].o
   document.getElementById('addressToTranslate').value = ""
   document.getElementById('resultAddress').value = ""
 }
-document.getElementById('addressToTranslate').onkeyup = function() {
+document.getElementById('addressToTranslate').oninput = function() {
   "use strict";
   (function() {
 
