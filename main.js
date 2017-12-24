@@ -45,6 +45,7 @@
 
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   document.getElementById('addressToTranslate').value = ""
+  document.getElementById('resultAddressBlock').style.display = 'none'
   document.getElementById('resultAddress').value = ""
 }
 document.getElementById('addressToTranslate').oninput = function() {
