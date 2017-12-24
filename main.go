@@ -83,10 +83,7 @@ var input string
 
 var CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
-// require base-x to avoid "math/big" (1.2 MB JS!)
-// Assume the input is .toLowerCase() if it starts with "bitcoincash:"
 func main() {
-	// js.Global.Set("bs58", "require('base-x')('123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz')")
 	input = js.Global.Get("document").Call("getElementById", "addressToTranslate").Get("value").String()
 	if input[11] == ':' && len(input) == 54 && (input[12] == 'q' || input[12] == 'p') {
 		for a, b := range input[0:11] {
@@ -95,13 +92,19 @@ func main() {
 			}
 		}
 		parseAndConvertCashAddress("bitcoincash", input[12:])
-	} else if input[0] == '1' || input[0] == '3' {
+	} else if input[0] == '1' || input[0] == '3' && len(input) > 25 {
 		parseAndConvertOldAddress(input)
 	} else if (input[0] == 'q' || input[0] == 'p') && len(input) == 42 {
 		parseAndConvertCashAddress("bitcoincash", input[:])
 	} else {
 		js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", "")
+		js.Global.Get("document").Call("getElementById", "resultAddressBlock").Get("style").Set("display", "none")
 	}
+}
+
+func cleanResultAddress() {
+	js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", "")
+	js.Global.Get("document").Call("getElementById", "resultAddressBlock").Get("style").Set("display", "none")
 }
 
 func parseAndConvertCashAddress(prefix string, payloadString string) {
@@ -116,11 +119,16 @@ func parseAndConvertCashAddress(prefix string, payloadString string) {
 		}
 	}
 	if PolyMod(append([]byte{2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0}, payloadUnparsed...)) != 0 {
+		cleanResultAddress()
 		return
 	}
 	// Also drop the checsum
 	// TODO: Fix the range
 	payload := convertBits(payloadUnparsed[:len(payloadUnparsed)-8], 5, 8, false)
+	if len(payload) == 0 {
+		cleanResultAddress()
+		return
+	}
 	addressType := payload[0] >> 3 // 0 or 1
 	craftOldAddress(addressType, payload[1:21])
 }
@@ -136,16 +144,15 @@ func CheckEncodeBase58(input []byte, version byte) {
 	b := make([]byte, 0, 1+len(input)+4)
 	b = append(b, version)
 	b = append(b, input[:]...)
-	var checksum []byte
 	h := sha256.Sum256(b)
 	h2 := sha256.Sum256(h[:])
-	copy(checksum, []byte(h2[:4]))
 	//	fmt.Println("%x %x %v", checksum, []byte(h2[:4]), len(checksum))
 	b = append(b, h2[:4]...)
 	//fmt.Println("%x", b[len(b)-4:])
 	//println(js.Global.Get("bs58").Call("encode", b).String())
 
 	js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", EncodeBase58Simplified(b))
+	js.Global.Get("document").Call("getElementById", "resultAddressBlock").Get("style").Set("display", "block")
 	//println(EncodeBase58(b))
 }
 
@@ -202,6 +209,7 @@ func parseAndConvertOldAddress(oldAddress string) {
 	for i := 0; i < len(oldAddress); i++ {
 		value := ALPHABET_MAP[oldAddress[i]]
 		if value == 0 && oldAddress[i] != byte('1') {
+			cleanResultAddress()
 			return
 		}
 		carry := uint64(value)
@@ -226,6 +234,7 @@ func parseAndConvertOldAddress(oldAddress string) {
 	copy(val[:len(bytes)], bytes)
 
 	if len(val) < 5 {
+		cleanResultAddress()
 		return
 	}
 	answer := []byte{}
@@ -236,6 +245,7 @@ func parseAndConvertOldAddress(oldAddress string) {
 	h := sha256.Sum256(answer[:len(answer)-4])
 	h2 := sha256.Sum256(h[:])
 	if h2[0] != answer[len(answer)-4] || h2[1] != answer[len(answer)-3] || h2[2] != answer[len(answer)-2] || h2[3] != answer[len(answer)-1] {
+		cleanResultAddress()
 		return
 	}
 	payload := answer[1 : len(answer)-4]
@@ -249,7 +259,10 @@ func parseAndConvertOldAddress(oldAddress string) {
 func craftCashAddress(kind uint, addressHash []byte) {
 	payload := packCashAddressData(kind, addressHash)
 	//checksum := CreateChecksum(prefix, payload)
-
+	if len(payload) == 0 {
+		cleanResultAddress()
+		return
+	}
 	enc := append([]byte{2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0}, payload...)
 	// Append 8 zeroes.
 	enc = append(enc, []byte{0, 0, 0, 0, 0, 0, 0, 0}...)
@@ -268,34 +281,8 @@ func craftCashAddress(kind uint, addressHash []byte) {
 		ret += string(CHARSET[c])
 	}
 	js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", ret)
-	// solution := ret
+	js.Global.Get("document").Call("getElementById", "resultAddressBlock").Get("style").Set("display", "block")
 }
-
-/*func packAddressData(AddressType byte, addrHash []byte) []byte {
-	// Pack addr data with version byte.
-	if AddressType != 0 && AddressType != 1 {
-		return []byte{}
-	}
-	versionByte := uint(AddressType) << 3
-	encodedSize := (uint(len(addrHash)) - 20) / 4
-	if (len(addrHash)-20)%4 != 0 {
-		return []byte{}
-	}
-	if encodedSize < 0 || encodedSize > 8 {
-		return []byte{}
-	}
-	versionByte |= encodedSize
-	var addrHashUint []byte
-	for _, e := range addrHash {
-		addrHashUint = append(addrHashUint, byte(e))
-	}
-	data := append([]byte{byte(versionByte)}, addrHashUint...)
-	packedData := convertBits(data, 8, 5, true)
-	if packedData == nil {
-		return []byte{}
-	}
-	return packedData
-}*/
 
 func PolyMod(v []byte) uint64 {
 	c := uint64(1)
@@ -377,23 +364,3 @@ func packCashAddressData(addressType uint, addressHash []byte) []byte {
 	packedData := convertBits(data, 8, 5, true)
 	return packedData
 }
-
-/*func stringReplacer(s string, charsToBeReplaced []rune, newChars []rune) {
-	var t []byte
-	for i, k := range s {
-		if contains(charsToBeReplaced, k) {
-			t = append(t, newChars[i])
-		} else {
-			t = append(t, k)
-		}
-	}
-}
-
-func contains(s []rune, e rune) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}*/
