@@ -107,16 +107,16 @@ func main() {
 		parseAndConvertCashAddress("bchtest", input[8:])
 	} else if input[11] == ':' && len(input) == 54 && (input[12] == 'Q' || input[12] == 'P') {
 		stringLowercase := ""
-		for _, i := range input {
+		for _, i := range input[12:] {
 			stringLowercase = stringLowercase + string(0x20|rune(i))
 		}
-		for a, b := range stringLowercase[0:11] {
-			if b != rune("bitcoincash"[a]) {
+		for a, b := range input[0:11] {
+			if b != rune("BITCOINCASH"[a]) {
 				cleanResultAddress()
 				return
 			}
 		}
-		parseAndConvertOldAddress(stringLowercase)
+		parseAndConvertCashAddress("bitcoincash", stringLowercase[:])
 
 		// Sorry! I think uppercase testnet addresses won't be used!
 	} else if input[0] == 'm' || input[0] == 'n' || input[0] == '2' {
