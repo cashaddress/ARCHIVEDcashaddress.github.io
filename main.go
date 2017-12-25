@@ -88,6 +88,7 @@ func main() {
 	if input[11] == ':' && len(input) == 54 && (input[12] == 'q' || input[12] == 'p') {
 		for a, b := range input[0:11] {
 			if b != rune("bitcoincash"[a]) {
+				cleanResultAddress()
 				return
 			}
 		}
@@ -96,9 +97,18 @@ func main() {
 		parseAndConvertOldAddress(input)
 	} else if (input[0] == 'q' || input[0] == 'p') && len(input) == 42 {
 		parseAndConvertCashAddress("bitcoincash", input[:])
+	} else if input[7] == ':' && len(input) == 50 && (input[8] == 'q' || input[8] == 'p') {
+		for a, b := range input[0:7] {
+			if b != rune("bchtest"[a]) {
+				cleanResultAddress()
+				return
+			}
+		}
+		parseAndConvertCashAddress("bchtest", input[8:])
+	} else if input[0] == 'm' || input[0] == 'n' || input[0] == '2' {
+		parseAndConvertOldAddress(input)
 	} else {
-		js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", "")
-		js.Global.Get("document").Call("getElementById", "resultAddressBlock").Get("style").Set("display", "none")
+		cleanResultAddress()
 	}
 }
 
@@ -118,7 +128,27 @@ func parseAndConvertCashAddress(prefix string, payloadString string) {
 			}
 		}
 	}
-	if PolyMod(append([]byte{2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0}, payloadUnparsed...)) != 0 {
+	expandPrefix := []byte{}
+	// func ExpandPrefix(prefix string) []byte {
+	// ret := make(data, len(prefix) + 1)
+	// for i := 0; i < len(prefix); i++ {
+	//	ret[i] = byte(prefix[i]) & 0x1f;
+	// }
+	// ret[len(prefix)] = 0;
+	// return ret;
+	// }
+	// https://play.golang.org/p/NMR2ImCmdpZ
+	netType := true
+	if prefix == "bitcoincash" {
+		expandPrefix = []byte{2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0}
+	} else if prefix == "bchtest" {
+		expandPrefix = []byte{2, 3, 8, 20, 5, 19, 20, 0}
+		netType = false
+	} else {
+		cleanResultAddress()
+		return
+	}
+	if PolyMod(append(expandPrefix, payloadUnparsed...)) != 0 {
 		cleanResultAddress()
 		return
 	}
@@ -130,14 +160,22 @@ func parseAndConvertCashAddress(prefix string, payloadString string) {
 		return
 	}
 	addressType := payload[0] >> 3 // 0 or 1
-	craftOldAddress(addressType, payload[1:21])
+	craftOldAddress(addressType, payload[1:21], netType)
 }
 
-func craftOldAddress(kind byte, addressHash []byte) {
-	if kind == 0 {
-		CheckEncodeBase58(addressHash[:], 0x00)
+func craftOldAddress(kind byte, addressHash []byte, netType bool) {
+	if netType {
+		if kind == 0 {
+			CheckEncodeBase58(addressHash[:], 0x00)
+		} else {
+			CheckEncodeBase58(addressHash[:], 0x05)
+		}
 	} else {
-		CheckEncodeBase58(addressHash[:], 0x05)
+		if kind == 0 {
+			CheckEncodeBase58(addressHash[:], 0x6f)
+		} else {
+			CheckEncodeBase58(addressHash[:], 0xc4)
+		}
 	}
 }
 func CheckEncodeBase58(input []byte, version byte) {
@@ -250,20 +288,41 @@ func parseAndConvertOldAddress(oldAddress string) {
 	}
 	payload := answer[1 : len(answer)-4]
 	if version == 0x00 {
-		craftCashAddress(0, payload)
+		craftCashAddress(0, payload, true)
 	} else if version == 0x05 {
-		craftCashAddress(1, payload)
+		craftCashAddress(1, payload, true)
+	} else if version == 0x6f {
+		craftCashAddress(0, payload, false)
+	} else if version == 0xc4 {
+		craftCashAddress(1, payload, false)
+	} else {
+		cleanResultAddress()
 	}
 }
 
-func craftCashAddress(kind uint, addressHash []byte) {
+func craftCashAddress(kind uint, addressHash []byte, netType bool) {
 	payload := packCashAddressData(kind, addressHash)
 	//checksum := CreateChecksum(prefix, payload)
 	if len(payload) == 0 {
 		cleanResultAddress()
 		return
 	}
-	enc := append([]byte{2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0}, payload...)
+	// func ExpandPrefix(prefix string) []byte {
+	// ret := make(data, len(prefix) + 1)
+	// for i := 0; i < len(prefix); i++ {
+	//	ret[i] = byte(prefix[i]) & 0x1f;
+	// }
+	// ret[len(prefix)] = 0;
+	// return ret;
+	// }
+	// https://play.golang.org/p/NMR2ImCmdpZ
+	expandPrefix := []byte{}
+	if netType == true {
+		expandPrefix = []byte{2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0}
+	} else {
+		expandPrefix = []byte{2, 3, 8, 20, 5, 19, 20, 0}
+	}
+	enc := append(expandPrefix, payload...)
 	// Append 8 zeroes.
 	enc = append(enc, []byte{0, 0, 0, 0, 0, 0, 0, 0}...)
 	// Determine what to XOR into those 8 zeroes.
@@ -275,13 +334,22 @@ func craftCashAddress(kind uint, addressHash []byte) {
 	}
 
 	combined := append(payload, retChecksum...)
-	ret := "bitcoincash:"
+	ret := ""
+	if netType == true {
+		ret = "bitcoincash:"
+	} else {
+		ret = "bchtest:"
+	}
 
 	for _, c := range combined {
 		ret += string(CHARSET[c])
 	}
-	js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", ret)
-	js.Global.Get("document").Call("getElementById", "resultAddressBlock").Get("style").Set("display", "block")
+	if len(ret) == 54 || len(ret) == 50 {
+		js.Global.Get("document").Call("getElementById", "resultAddress").Set("value", ret)
+		js.Global.Get("document").Call("getElementById", "resultAddressBlock").Get("style").Set("display", "block")
+	} else {
+		cleanResultAddress()
+	}
 }
 
 func PolyMod(v []byte) uint64 {
