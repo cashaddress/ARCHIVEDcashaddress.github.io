@@ -95,29 +95,29 @@ document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].o
 }
 document.getElementById('addressToTranslate').oninput = function() {
   input = document.getElementById('addressToTranslate').value
-	if (input[11] == ':' && len(input) == 54 && (input[12] == 'q' || input[12] == 'p')) {
+	if (input[11] == ':' && input.length == 54 && (input[12] == 'q' || input[12] == 'p')) {
     for (var i = 0; i < 11; i++) {
-      if (input[i] == "bitcoincash"[i]) {
+      if (input[i] != "bitcoincash"[i]) {
         cleanResultAddress()
         return
       }
     }
 		parseAndConvertCashAddress("bitcoincash", input.slice(12))
-	} else if (input[0] == '1' || input[0] == '3' && len(input) > 25 && len(input) < 35) {
+	} else if (input[0] == '1' || input[0] == '3' && input.length > 25 && input.length < 35) {
 		parseAndConvertOldAddress(input)
-	} else if ((input[0] == 'q' || input[0] == 'p') && len(input) == 42) {
+	} else if ((input[0] == 'q' || input[0] == 'p') && input.length == 42) {
 		parseAndConvertCashAddress("bitcoincash", input)
-	} else if (input[7] == ':' && len(input) == 50 && (input[8] == 'q' || input[8] == 'p')) {
+	} else if (input[7] == ':' && input.length == 50 && (input[8] == 'q' || input[8] == 'p')) {
     for (var i = 0; i < 7; i++) {
-      if (input[i] == "bchtest"[i]) {
+      if (input[i] != "bchtest"[i]) {
         cleanResultAddress()
         return
       }
     }
 		parseAndConvertCashAddress("bchtest", input.slice(8))
-	} else if (input[11] == ':' && len(input) == 54 && (input[12] == 'Q' || input[12] == 'P')) {
+	} else if (input[11] == ':' && input.length == 54 && (input[12] == 'Q' || input[12] == 'P')) {
     for (var i = 0; i < 11; i++) {
-      if (input[i] == "BITCOINCASH"[i]) {
+      if (input[i] != "BITCOINCASH"[i]) {
         cleanResultAddress()
         return
       }
@@ -127,7 +127,7 @@ document.getElementById('addressToTranslate').oninput = function() {
 		// Sorry! I think uppercase testnet addresses won't be used!
 	} else if (input[0] == 'm' || input[0] == 'n' || input[0] == '2') {
 		parseAndConvertOldAddress(input)
-	} else if ((input[0] == 'C' || input[0] == 'H') && len(input) > 25 && len(input) < 36) {
+	} else if ((input[0] == 'C' || input[0] == 'H') && input.length > 25 && input.length < 36) {
 		parseAndConvertOldAddress(input)
 	} else {
 		cleanResultAddress()
