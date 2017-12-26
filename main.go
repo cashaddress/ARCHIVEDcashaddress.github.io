@@ -1,6 +1,6 @@
 package main
 
-import (
+/*import (
 	"crypto/sha256"
 	"github.com/gopherjs/gopherjs/js"
 )
@@ -452,3 +452,4 @@ func packCashAddressData(addressType uint, addressHash []byte) []byte {
 	packedData := convertBits(data, 8, 5, true)
 	return packedData
 }
+*/
