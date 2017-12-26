@@ -132,6 +132,119 @@ document.getElementById('addressToTranslate').oninput = function() {
 	}
 }
 
+function parseAndConvertCashAddress(prefix, payloadString) {
+	// PolyMod(append(ExpandPrefix("bitcoincash"), payload...)) != 0
+	//payload := []byte(payloadString)
+	var payloadUnparsed = []
+  for (var i = 0; i < payloadString.length; i++) {
+    for (var t = 0; t < CHARSET.length; t++) {
+      if (t == payloadString[i]) {
+        payloadUnparsed.push(t)
+      }
+    }
+  }
+	var expandPrefix = []
+	// func ExpandPrefix(prefix string) []byte {
+	// ret := make(data, len(prefix) + 1)
+	// for i := 0; i < len(prefix); i++ {
+	//	ret[i] = byte(prefix[i]) & 0x1f;
+	// }
+	// ret[len(prefix)] = 0;
+	// return ret;
+	// }
+	// https://play.golang.org/p/NMR2ImCmdpZ
+	var netType = true
+	if (prefix == "bitcoincash") {
+		expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0]
+	} else if (prefix == "bchtest") {
+		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
+		netType = false
+	} else {
+		cleanResultAddress()
+		return
+	}
+	if (PolyMod(append(expandPrefix, payloadUnparsed)) != 0) {
+		cleanResultAddress()
+		return
+	}
+	// Also drop the checsum
+	// TODO: Fix the range
+	var payload = convertBits(payloadUnparsed.slice(0, payloadUnparsed.length-8), 5, 8, false)
+	if (payload.length == 0) {
+		cleanResultAddress()
+		return
+	}
+	var addressType = payload[0] >> 3 // 0 or 1
+	craftOldAddress(addressType, payload.slice(1,21), netType)
+}
+
+function craftOldAddress(kind, addressHash, netType) {
+	if (netType) {
+		if (kind == 0) {
+			CheckEncodeBase58(addressHash, 0x00)
+		} else {
+			CheckEncodeBase58(addressHash, 0x05)
+		}
+	} else {
+		if (kind == 0) {
+			CheckEncodeBase58(addressHash, 0x6f)
+		} else {
+			CheckEncodeBase58(addressHash, 0xc4)
+		}
+	}
+}
+
+function CheckEncodeBase58(input, version) {
+  var b = []
+	// b := make([]byte, 0, 1+len(input)+4)
+	b.push(version)
+	b = b.concat(input)
+	var h = sha256_bytes(b)
+	var h2 = sha256_bytes(h)
+	//	fmt.Println("%x %x %v", checksum, []byte(h2[:4]), len(checksum))
+  b = b.concat(h2.slice(0,4))
+	//fmt.Println("%x", b[len(b)-4:])
+	//println(js.Global.Get("bs58").Call("encode", b).String())
+  document.getElementById('resultAddress').value = EncodeBase58Simplified(b)
+  document.getElementById('resultAddressBlock').style.display = 'block'
+	//println(EncodeBase58(b))
+}
+
+function EncodeBase58Simplified(b) {
+	// var bigRadix = big.NewInt(58)
+	// var bigZero = big.NewInt(0)
+	var alphabetIdx0 = 0
+	var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	var digits = [0]
+	for (var i = 0; i < b.length; i++) {
+		var carry = b[i]
+		for (var j = 0; j < digits.length; j++) {
+			carry += digits[j] << 8
+			digits[j] = carry % 58
+			carry = (carry / 58) | 0
+		}
+		while (carry > 0) {
+      digits.push(carry%58)
+			carry = (carry / 58) | 0
+		}
+	}
+
+	// leading zero bytes
+  for (var i = 0; i < b.length; i++) {
+    if (b[i] != 0) {
+      break
+    }
+    digits.push(alphabetIdx0)
+  }
+
+	// reverse
+	var answer = ""
+	for (var t = digits.length - 1; t >= 0; t--) {
+		answer.push(alphabet[digits[t]])
+	}
+	return string(answer)
+}
+
 function parseAndConvertOldAddress(oldAddress) {
 	// var ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	// ALPHABET_MAP := make(map[rune]uint8)
@@ -171,7 +284,11 @@ function parseAndConvertOldAddress(oldAddress) {
 			break
 		}
 	}
-  var val = new Array(numZeros+bytes.length)
+  var val = []
+  for (var i = 0; i < numZeros + bytes.length; i++) {
+    val.push(0)
+  }
+
   for (var i = 0; i < bytes.length; i++) {
     val[i] = bytes[i]
   }
@@ -191,19 +308,114 @@ function parseAndConvertOldAddress(oldAddress) {
 		cleanResultAddress()
 		return
 	}
-	var payload = answer.slice(1, answer.length-4
+	var payload = answer.slice(1, answer.length-4)
 	if (version == 0x00) {
 		craftCashAddress(0, payload, true)
 	} else if (version == 0x05) {
 		craftCashAddress(1, payload, true)
 	} else if (version == 0x6f) {
 		craftCashAddress(0, payload, false)
-	} else if version == 0xc4 {
+	} else if (version == 0xc4) {
 		craftCashAddress(1, payload, false)
-	} else if version == 0x1c {
+	} else if (version == 0x1c) {
 		craftCashAddress(0, payload, true)
-	} else if version == 0x28 {
+	} else if (version == 0x28) {
 		craftCashAddress(1, payload, true)
+	} else {
+		cleanResultAddress()
+	}
+}
+
+function packCashAddressData(addressType, addressHash) {
+	// Pack addr data with version byte.
+	var versionByte = addressType << 3
+	var encodedSize = (addressHash.length - 20) / 4
+	if ((addressHash.length-20)%4 != 0) {
+		return []
+	}
+	if (encodedSize < 0 || encodedSize > 8) {
+		return []
+	}
+	versionByte |= encodedSize
+	var addressHashUint = []
+  for (var i = 0; i < addressHash.length; i++) {
+    addressHashUint.push(addressHash[i])
+  }
+  var data = [versionByte].concat(addressHashUint)
+	return convertBits(data, 8, 5, true)
+}
+
+function convertBits(data, fromBits, tobits, pad) {
+	// General power-of-2 base conversion.
+	var acc = 0
+	var bits = 0
+	var ret = []
+	var maxv = (1 << tobits) - 1
+	var maxAcc = (1 << (fromBits + tobits - 1)) - 1
+  for (var i = 0; i < data.length; i++) {
+    acc = ((acc << fromBits) | value) & maxAcc
+    bits += fromBits
+    while (bits >= tobits) {
+      bits -= tobits
+      ret.push((acc>>bits)&maxv)
+    }
+  }
+	if (pad) {
+		if (bits > 0) {
+      ret.push((acc<<(tobits-bits))&maxv)
+		}
+	} else if (bits >= fromBits || ((acc<<(tobits-bits))&maxv) != 0) {
+		return []
+	}
+	return ret
+}
+
+function craftCashAddress(kind, addressHash, netType) {
+	var payload = packCashAddressData(kind, addressHash)
+	//checksum := CreateChecksum(prefix, payload)
+	if (payload.length == 0) {
+		cleanResultAddress()
+		return
+	}
+	// func ExpandPrefix(prefix string) []byte {
+	// ret := make(data, len(prefix) + 1)
+	// for i := 0; i < len(prefix); i++ {
+	//	ret[i] = byte(prefix[i]) & 0x1f;
+	// }
+	// ret[len(prefix)] = 0;
+	// return ret;
+	// }
+	// https://play.golang.org/p/NMR2ImCmdpZ
+	var expandPrefix = []
+	if (netType == true) {
+		expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0]
+	} else {
+		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
+	}
+  enc = expandPrefix.concat(payload)
+	// Append 8 zeroes.
+	enc = enc.concat([0, 0, 0, 0, 0, 0, 0, 0])
+	// Determine what to XOR into those 8 zeroes.
+	var mod = PolyMod(enc)
+	var retChecksum = [0,0,0,0,0,0,0,0]
+	for i := 0; i < 8; i++ {
+		// Convert the 5-bit groups in mod to checksum values.
+		retChecksum[i] = byte((mod >> uint(5*(7-i))) & 0x1f)
+	}
+
+	var combined = payload.concat(retChecksum)
+	var ret = ""
+	if (netType == true) {
+		ret = "bitcoincash:"
+	} else {
+		ret = "bchtest:"
+	}
+  for (var i = 0; i < combined.length; i++) {
+    ret = ret.concat(CHARSET[combined[i]])
+  }
+	if (ret.length == 54 || ret.length == 50) {
+    document.getElementById('resultAddress').value = ret
+    document.getElementById('resultAddressBlock').style.display = block
 	} else {
 		cleanResultAddress()
 	}
