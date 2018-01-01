@@ -164,6 +164,7 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 	// PolyMod(append(ExpandPrefix("bitcoincash"), payload...)) != 0
 	//payload := []byte(payloadString)
 	var payloadUnparsed = []
+  // TODO: Optimize
   for (var i = 0; i < payloadString.length; i++) {
     for (var t = 0; t < CHARSET.length; t++) {
       if (t == payloadString[i]) {
@@ -192,12 +193,14 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 		return
 	}
   var polymodInput = expandPrefix.concat(payloadUnparsed)
-  polymodResult = polyMod(getAsBitArray(polymodInput))
-	if (polymodResult != 0) {
-    console.log("checksum doesn't match")
-		cleanResultAddress()
-		return
-	}
+  polymodResult = polyMod(polymodInput)
+  for (var i = 0; i < polymodResult.length; i++) {
+    if (polymodResult[i] != 0) {
+      console.log("checksum doesn't match")
+      cleanResultAddress()
+      return
+    }
+  }
 	// Also drop the checsum
 	// TODO: Fix the range
 	var payload = convertBits(payloadUnparsed.slice(0, payloadUnparsed.length-8), 5, 8, false)
@@ -444,9 +447,9 @@ function craftCashAddress(kind, addressHash, netType) {
 		// Convert the 5-bit groups in mod to checksum values.
 		retChecksum[i] = byte((mod >> uint(5*(7-i))) & 0x1f)
 	}*/
-  var toMod = getAsBitArray(enc).concat([0,0,0,0,0,0,0,0])
+  //var toMod = getAsBitArray(enc.concat([0,0,0,0,0,0,0,0]))
   console.log("ok")
-  var mod = polyMod(toMod)
+  var mod = polyMod(enc.concat([0,0,0,0,0,0,0,0]))
   var retChecksum = []
   for (var i = 0; i < 8; i++) {
     // Convert the 5-bit groups in mod to checksum values.
@@ -535,10 +538,14 @@ function getAs5bitArray(a) {
 }
 
 function getAsBitArray(v) {
-  if (v >> 5 != 0) {
+  if (v[0] >> 5 != 0) {
     console.log("bit error!")
   }
-  return [v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1]
+  var c = []
+  for (var i = 0; i < v.length; i++) {
+    c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
+  }
+  return c
 }
 
 function polyMod(v) {
