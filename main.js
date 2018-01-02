@@ -206,20 +206,7 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 		cleanResultAddress()
 		return
 	}
-  for (var i = 0; i < payload.length; i++) {
-    if (isNaN(payload[i])) {
-      alert("nan1")
-      alert("i")
-    }
-  }
-  for (var i = 0; i < payload.slice(1,21).length; i++) {
-    if (isNaN(payload.slice(1,21)[i])) {
-      alert("nan1")
-      alert("i")
-    }
-  }
 	var addressType = payload[0] >> 3 // 0 or 1
-  console.log("kind =".concat(addressType))
 	craftOldAddress(addressType, payload.slice(1,21), netType)
 }
 
@@ -247,23 +234,9 @@ function CheckEncodeBase58(input, version) {
 	var h = sha256(Uint8Array.from(b))
 	var h2 = sha256(h)
 	//	fmt.Println("%x %x %v", checksum, []byte(h2[:4]), len(checksum))
-  b = b.concat(h2.slice(0,4))
+  b = b.concat(Array.from(h2).slice(0,4))
 	//fmt.Println("%x", b[len(b)-4:])
 	//println(js.Global.Get("bs58").Call("encode", b).String())
-  for (var i = input.length - 1; i >= 0; i--) {
-    if (isNaN(input[i])) {
-          alert("nan2")
-          alert(i)
-    }
-
-  }
-  for (var i = b.length - 1; i >= 0; i--) {
-    if (isNaN(b[i])) {
-          alert("c4c")
-          alert(i)
-    }
-
-  }
   document.getElementById('resultAddress').value = EncodeBase58Simplified(b)
   document.getElementById('resultAddressBlock').style.display = 'block'
 	//println(EncodeBase58(b))
@@ -313,22 +286,15 @@ function EncodeBase58Simplified(b) {
       break
     }
     //digits.push(alphabetIdx0)
-    answer.concat("1")
+    answer = answer.concat("1")
   }
-  for (var i = b.length; i >= 0; i--) {
-    if (isNaN(b[i])) {
-      alert("ekn")
-      alert(i)
-    }
-  }
-  alert(digits[0])
 	// reverse
 	for (var t = digits.length - 1; t >= 0; t--) {
-    answer.concat(alphabet[digits[t]])
+    console.log(alphabet[digits[t]])
+    answer = answer.concat(alphabet[digits[t]])
     //alert(alphabet[digits[t]])
     //alert(digits[t])
 	}
-  alert(digits.length)
 	return answer
 }
 
