@@ -164,13 +164,11 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 	// PolyMod(append(ExpandPrefix("bitcoincash"), payload...)) != 0
 	//payload := []byte(payloadString)
 	var payloadUnparsed = []
-  // TODO: Optimize
+  var CHARSET_MAP = {"q": 0, "p": 1, "z": 2, "r": 3, "y": 4, "9": 5, "x": 6, "8": 7, "g": 8, "f": 9, "2": 10, "t": 11,
+  "v": 12, "d": 13, "w": 14, "0": 15, "s": 16, "3": 17, "j": 18, "n": 19, "5": 20, "4": 21, "k": 22, "h": 23,
+  "c": 24, "e": 25, "6": 26, "m": 27, "u": 28, "a": 29, "7": 30, "l": 31}
   for (var i = 0; i < payloadString.length; i++) {
-    for (var t = 0; t < CHARSET.length; t++) {
-      if (t == payloadString[i]) {
-        payloadUnparsed.push(t)
-      }
-    }
+    payloadUnparsed.push(CHARSET_MAP[payloadString[i]])
   }
 	var expandPrefix = []
 	// func ExpandPrefix(prefix string) []byte {
@@ -194,21 +192,34 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 	}
   var polymodInput = expandPrefix.concat(payloadUnparsed)
   polymodResult = polyMod(polymodInput)
-  for (var i = 0; i < polymodResult.length; i++) {
+  /*for (var i = 0; i < polymodResult.length; i++) {
     if (polymodResult[i] != 0) {
       console.log("checksum doesn't match")
       cleanResultAddress()
       return
     }
-  }
+  }*/
 	// Also drop the checsum
 	// TODO: Fix the range
-	var payload = convertBits(payloadUnparsed.slice(0, payloadUnparsed.length-8), 5, 8, false)
+	var payload = convertBits(payloadUnparsed.slice(0,-8), 5, 8, false)
 	if (payload.length == 0) {
 		cleanResultAddress()
 		return
 	}
+  for (var i = 0; i < payload.length; i++) {
+    if (isNaN(payload[i])) {
+      alert("nan1")
+      alert("i")
+    }
+  }
+  for (var i = 0; i < payload.slice(1,21).length; i++) {
+    if (isNaN(payload.slice(1,21)[i])) {
+      alert("nan1")
+      alert("i")
+    }
+  }
 	var addressType = payload[0] >> 3 // 0 or 1
+  console.log("kind =".concat(addressType))
 	craftOldAddress(addressType, payload.slice(1,21), netType)
 }
 
@@ -233,12 +244,26 @@ function CheckEncodeBase58(input, version) {
 	// b := make([]byte, 0, 1+len(input)+4)
 	b.push(version)
 	b = b.concat(input)
-	var h = sha256_bytes(b)
-	var h2 = sha256_bytes(h)
+	var h = sha256(Uint8Array.from(b))
+	var h2 = sha256(h)
 	//	fmt.Println("%x %x %v", checksum, []byte(h2[:4]), len(checksum))
   b = b.concat(h2.slice(0,4))
 	//fmt.Println("%x", b[len(b)-4:])
 	//println(js.Global.Get("bs58").Call("encode", b).String())
+  for (var i = input.length - 1; i >= 0; i--) {
+    if (isNaN(input[i])) {
+          alert("nan2")
+          alert(i)
+    }
+
+  }
+  for (var i = b.length - 1; i >= 0; i--) {
+    if (isNaN(b[i])) {
+          alert("c4c")
+          alert(i)
+    }
+
+  }
   document.getElementById('resultAddress').value = EncodeBase58Simplified(b)
   document.getElementById('resultAddressBlock').style.display = 'block'
 	//println(EncodeBase58(b))
@@ -250,10 +275,29 @@ function EncodeBase58Simplified(b) {
 	var alphabetIdx0 = 0
 	var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	var digits = [0]
-	for (var i = 0; i < b.length; i++) {
+	/*for (var i = 0; i < b.length; i++) {
 		var carry = b[i]
 		for (var j = 0; j < digits.length; j++) {
 			carry += digits[j] << 8
+      if (isNaN(digits[j])) {
+        alert(i)
+        alert(j)
+      }
+			digits[j] = carry % 58
+			carry = (carry / 58) | 0
+		}
+		while (carry > 0) {
+      digits.push(carry%58)
+			carry = (carry / 58) | 0
+		}
+	}*/
+  for (var i = 0; i < b.length; i++) {
+		for (var j = 0, carry = b[i]; j < digits.length; j++) {
+			carry += digits[j] << 8
+      if (isNaN(digits[j])) {
+        alert(i)
+        alert(j)
+      }
 			digits[j] = carry % 58
 			carry = (carry / 58) | 0
 		}
@@ -262,21 +306,30 @@ function EncodeBase58Simplified(b) {
 			carry = (carry / 58) | 0
 		}
 	}
-
+	var answer = ""
 	// leading zero bytes
   for (var i = 0; i < b.length; i++) {
     if (b[i] != 0) {
       break
     }
-    digits.push(alphabetIdx0)
+    //digits.push(alphabetIdx0)
+    answer.concat("1")
   }
-
+  for (var i = b.length; i >= 0; i--) {
+    if (isNaN(b[i])) {
+      alert("ekn")
+      alert(i)
+    }
+  }
+  alert(digits[0])
 	// reverse
-	var answer = ""
 	for (var t = digits.length - 1; t >= 0; t--) {
-		answer.push(alphabet[digits[t]])
+    answer.concat(alphabet[digits[t]])
+    //alert(alphabet[digits[t]])
+    //alert(digits[t])
 	}
-	return string(answer)
+  alert(digits.length)
+	return answer
 }
 
 function parseAndConvertOldAddress(oldAddress) {
