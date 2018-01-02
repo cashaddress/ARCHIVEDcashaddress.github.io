@@ -1,3 +1,73 @@
+/* https://github.com/dchest/fast-sha256-js/blob/master/LICENSE
+
+ This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org> */
+
+// The MIT License (MIT)
+//
+// Copyright (c) 2013 Artem S Vybornov
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+// The MIT License (MIT)
+// Copyright base-x contributors (c) 2016
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 // https://github.com/cryptocoinjs/base-x/blob/master/index.js
 // base-x encoding
 // Forked from https://github.com/cryptocoinjs/bs58
@@ -42,37 +112,511 @@
 // WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
+var CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   document.getElementById('addressToTranslate').value = ""
   document.getElementById('resultAddressBlock').style.display = 'none'
   document.getElementById('resultAddress').value = ""
 }
 document.getElementById('addressToTranslate').oninput = function() {
-  "use strict";
-  (function() {
+  input = document.getElementById('addressToTranslate').value
+	if (input[11] == ':' && input.length == 54 && (input[12] == 'q' || input[12] == 'p')) {
+    for (var i = 0; i < 11; i++) {
+      if (input[i] != "bitcoincash"[i]) {
+        cleanResultAddress()
+        return
+      }
+    }
+		parseAndConvertCashAddress("bitcoincash", input.slice(12))
+	} else if (input[0] == '1' || input[0] == '3' && input.length > 25 && input.length < 35) {
+		parseAndConvertOldAddress(input)
+	} else if ((input[0] == 'q' || input[0] == 'p') && input.length == 42) {
+		parseAndConvertCashAddress("bitcoincash", input)
+	} else if (input[7] == ':' && input.length == 50 && (input[8] == 'q' || input[8] == 'p')) {
+    for (var i = 0; i < 7; i++) {
+      if (input[i] != "bchtest"[i]) {
+        cleanResultAddress()
+        return
+      }
+    }
+		parseAndConvertCashAddress("bchtest", input.slice(8))
+	} else if (input[11] == ':' && input.length == 54 && (input[12] == 'Q' || input[12] == 'P')) {
+    for (var i = 0; i < 11; i++) {
+      if (input[i] != "BITCOINCASH"[i]) {
+        cleanResultAddress()
+        return
+      }
+    }
+		parseAndConvertOldAddress(input.toLowerCase())
 
-  Error.stackTraceLimit=Infinity;var $global,$module;if(typeof window!=="undefined"){$global=window;}else if(typeof self!=="undefined"){$global=self;}else if(typeof global!=="undefined"){$global=global;$global.require=require;}else{$global=this;}if($global===undefined||$global.Array===undefined){throw new Error("no global object found");}if(typeof module!=="undefined"){$module=module;}var $packages={},$idCounter=0;var $keys=function(m){return m?Object.keys(m):[];};var $flushConsole=function(){};var $throwRuntimeError;var $throwNilPointerError=function(){$throwRuntimeError("invalid memory address or nil pointer dereference");};var $call=function(fn,rcvr,args){return fn.apply(rcvr,args);};var $makeFunc=function(fn){return function(){return $externalize(fn(this,new($sliceType($jsObjectPtr))($global.Array.prototype.slice.call(arguments,[]))),$emptyInterface);};};var $unused=function(v){};var $mapArray=function(array,f){var newArray=new array.constructor(array.length);for(var i=0;i<array.length;i++){newArray[i]=f(array[i]);}return newArray;};var $methodVal=function(recv,name){var vals=recv.$methodVals||{};recv.$methodVals=vals;var f=vals[name];if(f!==undefined){return f;}var method=recv[name];f=function(){$stackDepthOffset--;try{return method.apply(recv,arguments);}finally{$stackDepthOffset++;}};vals[name]=f;return f;};var $methodExpr=function(typ,name){var method=typ.prototype[name];if(method.$expr===undefined){method.$expr=function(){$stackDepthOffset--;try{if(typ.wrapped){arguments[0]=new typ(arguments[0]);}return Function.call.apply(method,arguments);}finally{$stackDepthOffset++;}};}return method.$expr;};var $ifaceMethodExprs={};var $ifaceMethodExpr=function(name){var expr=$ifaceMethodExprs["$"+name];if(expr===undefined){expr=$ifaceMethodExprs["$"+name]=function(){$stackDepthOffset--;try{return Function.call.apply(arguments[0][name],arguments);}finally{$stackDepthOffset++;}};}return expr;};var $subslice=function(slice,low,high,max){if(low<0||high<low||max<high||high>slice.$capacity||max>slice.$capacity){$throwRuntimeError("slice bounds out of range");}var s=new slice.constructor(slice.$array);s.$offset=slice.$offset+low;s.$length=slice.$length-low;s.$capacity=slice.$capacity-low;if(high!==undefined){s.$length=high-low;}if(max!==undefined){s.$capacity=max-low;}return s;};var $substring=function(str,low,high){if(low<0||high<low||high>str.length){$throwRuntimeError("slice bounds out of range");}return str.substring(low,high);};var $sliceToArray=function(slice){if(slice.$array.constructor!==Array){return slice.$array.subarray(slice.$offset,slice.$offset+slice.$length);}return slice.$array.slice(slice.$offset,slice.$offset+slice.$length);};var $decodeRune=function(str,pos){var c0=str.charCodeAt(pos);if(c0<0x80){return[c0,1];}if(c0!==c0||c0<0xC0){return[0xFFFD,1];}var c1=str.charCodeAt(pos+1);if(c1!==c1||c1<0x80||0xC0<=c1){return[0xFFFD,1];}if(c0<0xE0){var r=(c0&0x1F)<<6|(c1&0x3F);if(r<=0x7F){return[0xFFFD,1];}return[r,2];}var c2=str.charCodeAt(pos+2);if(c2!==c2||c2<0x80||0xC0<=c2){return[0xFFFD,1];}if(c0<0xF0){var r=(c0&0x0F)<<12|(c1&0x3F)<<6|(c2&0x3F);if(r<=0x7FF){return[0xFFFD,1];}if(0xD800<=r&&r<=0xDFFF){return[0xFFFD,1];}return[r,3];}var c3=str.charCodeAt(pos+3);if(c3!==c3||c3<0x80||0xC0<=c3){return[0xFFFD,1];}if(c0<0xF8){var r=(c0&0x07)<<18|(c1&0x3F)<<12|(c2&0x3F)<<6|(c3&0x3F);if(r<=0xFFFF||0x10FFFF<r){return[0xFFFD,1];}return[r,4];}return[0xFFFD,1];};var $encodeRune=function(r){if(r<0||r>0x10FFFF||(0xD800<=r&&r<=0xDFFF)){r=0xFFFD;}if(r<=0x7F){return String.fromCharCode(r);}if(r<=0x7FF){return String.fromCharCode(0xC0|r>>6,0x80|(r&0x3F));}if(r<=0xFFFF){return String.fromCharCode(0xE0|r>>12,0x80|(r>>6&0x3F),0x80|(r&0x3F));}return String.fromCharCode(0xF0|r>>18,0x80|(r>>12&0x3F),0x80|(r>>6&0x3F),0x80|(r&0x3F));};var $stringToBytes=function(str){var array=new Uint8Array(str.length);for(var i=0;i<str.length;i++){array[i]=str.charCodeAt(i);}return array;};var $bytesToString=function(slice){if(slice.$length===0){return"";}var str="";for(var i=0;i<slice.$length;i+=10000){str+=String.fromCharCode.apply(undefined,slice.$array.subarray(slice.$offset+i,slice.$offset+Math.min(slice.$length,i+10000)));}return str;};var $stringToRunes=function(str){var array=new Int32Array(str.length);var rune,j=0;for(var i=0;i<str.length;i+=rune[1],j++){rune=$decodeRune(str,i);array[j]=rune[0];}return array.subarray(0,j);};var $runesToString=function(slice){if(slice.$length===0){return"";}var str="";for(var i=0;i<slice.$length;i++){str+=$encodeRune(slice.$array[slice.$offset+i]);}return str;};var $copyString=function(dst,src){var n=Math.min(src.length,dst.$length);for(var i=0;i<n;i++){dst.$array[dst.$offset+i]=src.charCodeAt(i);}return n;};var $copySlice=function(dst,src){var n=Math.min(src.$length,dst.$length);$copyArray(dst.$array,src.$array,dst.$offset,src.$offset,n,dst.constructor.elem);return n;};var $copyArray=function(dst,src,dstOffset,srcOffset,n,elem){if(n===0||(dst===src&&dstOffset===srcOffset)){return;}if(src.subarray){dst.set(src.subarray(srcOffset,srcOffset+n),dstOffset);return;}switch(elem.kind){case $kindArray:case $kindStruct:if(dst===src&&dstOffset>srcOffset){for(var i=n-1;i>=0;i--){elem.copy(dst[dstOffset+i],src[srcOffset+i]);}return;}for(var i=0;i<n;i++){elem.copy(dst[dstOffset+i],src[srcOffset+i]);}return;}if(dst===src&&dstOffset>srcOffset){for(var i=n-1;i>=0;i--){dst[dstOffset+i]=src[srcOffset+i];}return;}for(var i=0;i<n;i++){dst[dstOffset+i]=src[srcOffset+i];}};var $clone=function(src,type){var clone=type.zero();type.copy(clone,src);return clone;};var $pointerOfStructConversion=function(obj,type){if(obj.$proxies===undefined){obj.$proxies={};obj.$proxies[obj.constructor.string]=obj;}var proxy=obj.$proxies[type.string];if(proxy===undefined){var properties={};for(var i=0;i<type.elem.fields.length;i++){(function(fieldProp){properties[fieldProp]={get:function(){return obj[fieldProp];},set:function(value){obj[fieldProp]=value;}};})(type.elem.fields[i].prop);}proxy=Object.create(type.prototype,properties);proxy.$val=proxy;obj.$proxies[type.string]=proxy;proxy.$proxies=obj.$proxies;}return proxy;};var $append=function(slice){return $internalAppend(slice,arguments,1,arguments.length-1);};var $appendSlice=function(slice,toAppend){if(toAppend.constructor===String){var bytes=$stringToBytes(toAppend);return $internalAppend(slice,bytes,0,bytes.length);}return $internalAppend(slice,toAppend.$array,toAppend.$offset,toAppend.$length);};var $internalAppend=function(slice,array,offset,length){if(length===0){return slice;}var newArray=slice.$array;var newOffset=slice.$offset;var newLength=slice.$length+length;var newCapacity=slice.$capacity;if(newLength>newCapacity){newOffset=0;newCapacity=Math.max(newLength,slice.$capacity<1024?slice.$capacity*2:Math.floor(slice.$capacity*5/4));if(slice.$array.constructor===Array){newArray=slice.$array.slice(slice.$offset,slice.$offset+slice.$length);newArray.length=newCapacity;var zero=slice.constructor.elem.zero;for(var i=slice.$length;i<newCapacity;i++){newArray[i]=zero();}}else{newArray=new slice.$array.constructor(newCapacity);newArray.set(slice.$array.subarray(slice.$offset,slice.$offset+slice.$length));}}$copyArray(newArray,array,newOffset+slice.$length,offset,length,slice.constructor.elem);var newSlice=new slice.constructor(newArray);newSlice.$offset=newOffset;newSlice.$length=newLength;newSlice.$capacity=newCapacity;return newSlice;};var $equal=function(a,b,type){if(type===$jsObjectPtr){return a===b;}switch(type.kind){case $kindComplex64:case $kindComplex128:return a.$real===b.$real&&a.$imag===b.$imag;case $kindInt64:case $kindUint64:return a.$high===b.$high&&a.$low===b.$low;case $kindArray:if(a.length!==b.length){return false;}for(var i=0;i<a.length;i++){if(!$equal(a[i],b[i],type.elem)){return false;}}return true;case $kindStruct:for(var i=0;i<type.fields.length;i++){var f=type.fields[i];if(!$equal(a[f.prop],b[f.prop],f.typ)){return false;}}return true;case $kindInterface:return $interfaceIsEqual(a,b);default:return a===b;}};var $interfaceIsEqual=function(a,b){if(a===$ifaceNil||b===$ifaceNil){return a===b;}if(a.constructor!==b.constructor){return false;}if(a.constructor===$jsObjectPtr){return a.object===b.object;}if(!a.constructor.comparable){$throwRuntimeError("comparing uncomparable type "+a.constructor.string);}return $equal(a.$val,b.$val,a.constructor);};var $min=Math.min;var $mod=function(x,y){return x%y;};var $parseInt=parseInt;var $parseFloat=function(f){if(f!==undefined&&f!==null&&f.constructor===Number){return f;}return parseFloat(f);};var $froundBuf=new Float32Array(1);var $fround=Math.fround||function(f){$froundBuf[0]=f;return $froundBuf[0];};var $imul=Math.imul||function(a,b){var ah=(a>>>16)&0xffff;var al=a&0xffff;var bh=(b>>>16)&0xffff;var bl=b&0xffff;return((al*bl)+(((ah*bl+al*bh)<<16)>>>0)>>0);};var $floatKey=function(f){if(f!==f){$idCounter++;return"NaN$"+$idCounter;}return String(f);};var $flatten64=function(x){return x.$high*4294967296+x.$low;};var $shiftLeft64=function(x,y){if(y===0){return x;}if(y<32){return new x.constructor(x.$high<<y|x.$low>>>(32-y),(x.$low<<y)>>>0);}if(y<64){return new x.constructor(x.$low<<(y-32),0);}return new x.constructor(0,0);};var $shiftRightInt64=function(x,y){if(y===0){return x;}if(y<32){return new x.constructor(x.$high>>y,(x.$low>>>y|x.$high<<(32-y))>>>0);}if(y<64){return new x.constructor(x.$high>>31,(x.$high>>(y-32))>>>0);}if(x.$high<0){return new x.constructor(-1,4294967295);}return new x.constructor(0,0);};var $shiftRightUint64=function(x,y){if(y===0){return x;}if(y<32){return new x.constructor(x.$high>>>y,(x.$low>>>y|x.$high<<(32-y))>>>0);}if(y<64){return new x.constructor(0,x.$high>>>(y-32));}return new x.constructor(0,0);};var $mul64=function(x,y){var high=0,low=0;if((y.$low&1)!==0){high=x.$high;low=x.$low;}for(var i=1;i<32;i++){if((y.$low&1<<i)!==0){high+=x.$high<<i|x.$low>>>(32-i);low+=(x.$low<<i)>>>0;}}for(var i=0;i<32;i++){if((y.$high&1<<i)!==0){high+=x.$low<<i;}}return new x.constructor(high,low);};var $div64=function(x,y,returnRemainder){if(y.$high===0&&y.$low===0){$throwRuntimeError("integer divide by zero");}var s=1;var rs=1;var xHigh=x.$high;var xLow=x.$low;if(xHigh<0){s=-1;rs=-1;xHigh=-xHigh;if(xLow!==0){xHigh--;xLow=4294967296-xLow;}}var yHigh=y.$high;var yLow=y.$low;if(y.$high<0){s*=-1;yHigh=-yHigh;if(yLow!==0){yHigh--;yLow=4294967296-yLow;}}var high=0,low=0,n=0;while(yHigh<2147483648&&((xHigh>yHigh)||(xHigh===yHigh&&xLow>yLow))){yHigh=(yHigh<<1|yLow>>>31)>>>0;yLow=(yLow<<1)>>>0;n++;}for(var i=0;i<=n;i++){high=high<<1|low>>>31;low=(low<<1)>>>0;if((xHigh>yHigh)||(xHigh===yHigh&&xLow>=yLow)){xHigh=xHigh-yHigh;xLow=xLow-yLow;if(xLow<0){xHigh--;xLow+=4294967296;}low++;if(low===4294967296){high++;low=0;}}yLow=(yLow>>>1|yHigh<<(32-1))>>>0;yHigh=yHigh>>>1;}if(returnRemainder){return new x.constructor(xHigh*rs,xLow*rs);}return new x.constructor(high*s,low*s);};var $divComplex=function(n,d){var ninf=n.$real===Infinity||n.$real===-Infinity||n.$imag===Infinity||n.$imag===-Infinity;var dinf=d.$real===Infinity||d.$real===-Infinity||d.$imag===Infinity||d.$imag===-Infinity;var nnan=!ninf&&(n.$real!==n.$real||n.$imag!==n.$imag);var dnan=!dinf&&(d.$real!==d.$real||d.$imag!==d.$imag);if(nnan||dnan){return new n.constructor(NaN,NaN);}if(ninf&&!dinf){return new n.constructor(Infinity,Infinity);}if(!ninf&&dinf){return new n.constructor(0,0);}if(d.$real===0&&d.$imag===0){if(n.$real===0&&n.$imag===0){return new n.constructor(NaN,NaN);}return new n.constructor(Infinity,Infinity);}var a=Math.abs(d.$real);var b=Math.abs(d.$imag);if(a<=b){var ratio=d.$real/d.$imag;var denom=d.$real*ratio+d.$imag;return new n.constructor((n.$real*ratio+n.$imag)/denom,(n.$imag*ratio-n.$real)/denom);}var ratio=d.$imag/d.$real;var denom=d.$imag*ratio+d.$real;return new n.constructor((n.$imag*ratio+n.$real)/denom,(n.$imag-n.$real*ratio)/denom);};var $kindBool=1;var $kindInt=2;var $kindInt8=3;var $kindInt16=4;var $kindInt32=5;var $kindInt64=6;var $kindUint=7;var $kindUint8=8;var $kindUint16=9;var $kindUint32=10;var $kindUint64=11;var $kindUintptr=12;var $kindFloat32=13;var $kindFloat64=14;var $kindComplex64=15;var $kindComplex128=16;var $kindArray=17;var $kindChan=18;var $kindFunc=19;var $kindInterface=20;var $kindMap=21;var $kindPtr=22;var $kindSlice=23;var $kindString=24;var $kindStruct=25;var $kindUnsafePointer=26;var $methodSynthesizers=[];var $addMethodSynthesizer=function(f){if($methodSynthesizers===null){f();return;}$methodSynthesizers.push(f);};var $synthesizeMethods=function(){$methodSynthesizers.forEach(function(f){f();});$methodSynthesizers=null;};var $ifaceKeyFor=function(x){if(x===$ifaceNil){return'nil';}var c=x.constructor;return c.string+'$'+c.keyFor(x.$val);};var $identity=function(x){return x;};var $typeIDCounter=0;var $idKey=function(x){if(x.$id===undefined){$idCounter++;x.$id=$idCounter;}return String(x.$id);};var $newType=function(size,kind,string,named,pkg,exported,constructor){var typ;switch(kind){case $kindBool:case $kindInt:case $kindInt8:case $kindInt16:case $kindInt32:case $kindUint:case $kindUint8:case $kindUint16:case $kindUint32:case $kindUintptr:case $kindUnsafePointer:typ=function(v){this.$val=v;};typ.wrapped=true;typ.keyFor=$identity;break;case $kindString:typ=function(v){this.$val=v;};typ.wrapped=true;typ.keyFor=function(x){return"$"+x;};break;case $kindFloat32:case $kindFloat64:typ=function(v){this.$val=v;};typ.wrapped=true;typ.keyFor=function(x){return $floatKey(x);};break;case $kindInt64:typ=function(high,low){this.$high=(high+Math.floor(Math.ceil(low)/4294967296))>>0;this.$low=low>>>0;this.$val=this;};typ.keyFor=function(x){return x.$high+"$"+x.$low;};break;case $kindUint64:typ=function(high,low){this.$high=(high+Math.floor(Math.ceil(low)/4294967296))>>>0;this.$low=low>>>0;this.$val=this;};typ.keyFor=function(x){return x.$high+"$"+x.$low;};break;case $kindComplex64:typ=function(real,imag){this.$real=$fround(real);this.$imag=$fround(imag);this.$val=this;};typ.keyFor=function(x){return x.$real+"$"+x.$imag;};break;case $kindComplex128:typ=function(real,imag){this.$real=real;this.$imag=imag;this.$val=this;};typ.keyFor=function(x){return x.$real+"$"+x.$imag;};break;case $kindArray:typ=function(v){this.$val=v;};typ.wrapped=true;typ.ptr=$newType(4,$kindPtr,"*"+string,false,"",false,function(array){this.$get=function(){return array;};this.$set=function(v){typ.copy(this,v);};this.$val=array;});typ.init=function(elem,len){typ.elem=elem;typ.len=len;typ.comparable=elem.comparable;typ.keyFor=function(x){return Array.prototype.join.call($mapArray(x,function(e){return String(elem.keyFor(e)).replace(/\\/g,"\\\\").replace(/\$/g,"\\$");}),"$");};typ.copy=function(dst,src){$copyArray(dst,src,0,0,src.length,elem);};typ.ptr.init(typ);Object.defineProperty(typ.ptr.nil,"nilCheck",{get:$throwNilPointerError});};break;case $kindChan:typ=function(v){this.$val=v;};typ.wrapped=true;typ.keyFor=$idKey;typ.init=function(elem,sendOnly,recvOnly){typ.elem=elem;typ.sendOnly=sendOnly;typ.recvOnly=recvOnly;};break;case $kindFunc:typ=function(v){this.$val=v;};typ.wrapped=true;typ.init=function(params,results,variadic){typ.params=params;typ.results=results;typ.variadic=variadic;typ.comparable=false;};break;case $kindInterface:typ={implementedBy:{},missingMethodFor:{}};typ.keyFor=$ifaceKeyFor;typ.init=function(methods){typ.methods=methods;methods.forEach(function(m){$ifaceNil[m.prop]=$throwNilPointerError;});};break;case $kindMap:typ=function(v){this.$val=v;};typ.wrapped=true;typ.init=function(key,elem){typ.key=key;typ.elem=elem;typ.comparable=false;};break;case $kindPtr:typ=constructor||function(getter,setter,target){this.$get=getter;this.$set=setter;this.$target=target;this.$val=this;};typ.keyFor=$idKey;typ.init=function(elem){typ.elem=elem;typ.wrapped=(elem.kind===$kindArray);typ.nil=new typ($throwNilPointerError,$throwNilPointerError);};break;case $kindSlice:typ=function(array){if(array.constructor!==typ.nativeArray){array=new typ.nativeArray(array);}this.$array=array;this.$offset=0;this.$length=array.length;this.$capacity=array.length;this.$val=this;};typ.init=function(elem){typ.elem=elem;typ.comparable=false;typ.nativeArray=$nativeArray(elem.kind);typ.nil=new typ([]);};break;case $kindStruct:typ=function(v){this.$val=v;};typ.wrapped=true;typ.ptr=$newType(4,$kindPtr,"*"+string,false,pkg,exported,constructor);typ.ptr.elem=typ;typ.ptr.prototype.$get=function(){return this;};typ.ptr.prototype.$set=function(v){typ.copy(this,v);};typ.init=function(pkgPath,fields){typ.pkgPath=pkgPath;typ.fields=fields;fields.forEach(function(f){if(!f.typ.comparable){typ.comparable=false;}});typ.keyFor=function(x){var val=x.$val;return $mapArray(fields,function(f){return String(f.typ.keyFor(val[f.prop])).replace(/\\/g,"\\\\").replace(/\$/g,"\\$");}).join("$");};typ.copy=function(dst,src){for(var i=0;i<fields.length;i++){var f=fields[i];switch(f.typ.kind){case $kindArray:case $kindStruct:f.typ.copy(dst[f.prop],src[f.prop]);continue;default:dst[f.prop]=src[f.prop];continue;}}};var properties={};fields.forEach(function(f){properties[f.prop]={get:$throwNilPointerError,set:$throwNilPointerError};});typ.ptr.nil=Object.create(constructor.prototype,properties);typ.ptr.nil.$val=typ.ptr.nil;$addMethodSynthesizer(function(){var synthesizeMethod=function(target,m,f){if(target.prototype[m.prop]!==undefined){return;}target.prototype[m.prop]=function(){var v=this.$val[f.prop];if(f.typ===$jsObjectPtr){v=new $jsObjectPtr(v);}if(v.$val===undefined){v=new f.typ(v);}return v[m.prop].apply(v,arguments);};};fields.forEach(function(f){if(f.anonymous){$methodSet(f.typ).forEach(function(m){synthesizeMethod(typ,m,f);synthesizeMethod(typ.ptr,m,f);});$methodSet($ptrType(f.typ)).forEach(function(m){synthesizeMethod(typ.ptr,m,f);});}});});};break;default:$panic(new $String("invalid kind: "+kind));}switch(kind){case $kindBool:case $kindMap:typ.zero=function(){return false;};break;case $kindInt:case $kindInt8:case $kindInt16:case $kindInt32:case $kindUint:case $kindUint8:case $kindUint16:case $kindUint32:case $kindUintptr:case $kindUnsafePointer:case $kindFloat32:case $kindFloat64:typ.zero=function(){return 0;};break;case $kindString:typ.zero=function(){return"";};break;case $kindInt64:case $kindUint64:case $kindComplex64:case $kindComplex128:var zero=new typ(0,0);typ.zero=function(){return zero;};break;case $kindPtr:case $kindSlice:typ.zero=function(){return typ.nil;};break;case $kindChan:typ.zero=function(){return $chanNil;};break;case $kindFunc:typ.zero=function(){return $throwNilPointerError;};break;case $kindInterface:typ.zero=function(){return $ifaceNil;};break;case $kindArray:typ.zero=function(){var arrayClass=$nativeArray(typ.elem.kind);if(arrayClass!==Array){return new arrayClass(typ.len);}var array=new Array(typ.len);for(var i=0;i<typ.len;i++){array[i]=typ.elem.zero();}return array;};break;case $kindStruct:typ.zero=function(){return new typ.ptr();};break;default:$panic(new $String("invalid kind: "+kind));}typ.id=$typeIDCounter;$typeIDCounter++;typ.size=size;typ.kind=kind;typ.string=string;typ.named=named;typ.pkg=pkg;typ.exported=exported;typ.methods=[];typ.methodSetCache=null;typ.comparable=true;return typ;};var $methodSet=function(typ){if(typ.methodSetCache!==null){return typ.methodSetCache;}var base={};var isPtr=(typ.kind===$kindPtr);if(isPtr&&typ.elem.kind===$kindInterface){typ.methodSetCache=[];return[];}var current=[{typ:isPtr?typ.elem:typ,indirect:isPtr}];var seen={};while(current.length>0){var next=[];var mset=[];current.forEach(function(e){if(seen[e.typ.string]){return;}seen[e.typ.string]=true;if(e.typ.named){mset=mset.concat(e.typ.methods);if(e.indirect){mset=mset.concat($ptrType(e.typ).methods);}}switch(e.typ.kind){case $kindStruct:e.typ.fields.forEach(function(f){if(f.anonymous){var fTyp=f.typ;var fIsPtr=(fTyp.kind===$kindPtr);next.push({typ:fIsPtr?fTyp.elem:fTyp,indirect:e.indirect||fIsPtr});}});break;case $kindInterface:mset=mset.concat(e.typ.methods);break;}});mset.forEach(function(m){if(base[m.name]===undefined){base[m.name]=m;}});current=next;}typ.methodSetCache=[];Object.keys(base).sort().forEach(function(name){typ.methodSetCache.push(base[name]);});return typ.methodSetCache;};var $Bool=$newType(1,$kindBool,"bool",true,"",false,null);var $Int=$newType(4,$kindInt,"int",true,"",false,null);var $Int8=$newType(1,$kindInt8,"int8",true,"",false,null);var $Int16=$newType(2,$kindInt16,"int16",true,"",false,null);var $Int32=$newType(4,$kindInt32,"int32",true,"",false,null);var $Int64=$newType(8,$kindInt64,"int64",true,"",false,null);var $Uint=$newType(4,$kindUint,"uint",true,"",false,null);var $Uint8=$newType(1,$kindUint8,"uint8",true,"",false,null);var $Uint16=$newType(2,$kindUint16,"uint16",true,"",false,null);var $Uint32=$newType(4,$kindUint32,"uint32",true,"",false,null);var $Uint64=$newType(8,$kindUint64,"uint64",true,"",false,null);var $Uintptr=$newType(4,$kindUintptr,"uintptr",true,"",false,null);var $Float32=$newType(4,$kindFloat32,"float32",true,"",false,null);var $Float64=$newType(8,$kindFloat64,"float64",true,"",false,null);var $Complex64=$newType(8,$kindComplex64,"complex64",true,"",false,null);var $Complex128=$newType(16,$kindComplex128,"complex128",true,"",false,null);var $String=$newType(8,$kindString,"string",true,"",false,null);var $UnsafePointer=$newType(4,$kindUnsafePointer,"unsafe.Pointer",true,"",false,null);var $nativeArray=function(elemKind){switch(elemKind){case $kindInt:return Int32Array;case $kindInt8:return Int8Array;case $kindInt16:return Int16Array;case $kindInt32:return Int32Array;case $kindUint:return Uint32Array;case $kindUint8:return Uint8Array;case $kindUint16:return Uint16Array;case $kindUint32:return Uint32Array;case $kindUintptr:return Uint32Array;case $kindFloat32:return Float32Array;case $kindFloat64:return Float64Array;default:return Array;}};var $toNativeArray=function(elemKind,array){var nativeArray=$nativeArray(elemKind);if(nativeArray===Array){return array;}return new nativeArray(array);};var $arrayTypes={};var $arrayType=function(elem,len){var typeKey=elem.id+"$"+len;var typ=$arrayTypes[typeKey];if(typ===undefined){typ=$newType(12,$kindArray,"["+len+"]"+elem.string,false,"",false,null);$arrayTypes[typeKey]=typ;typ.init(elem,len);}return typ;};var $chanType=function(elem,sendOnly,recvOnly){var string=(recvOnly?"<-":"")+"chan"+(sendOnly?"<- ":" ")+elem.string;var field=sendOnly?"SendChan":(recvOnly?"RecvChan":"Chan");var typ=elem[field];if(typ===undefined){typ=$newType(4,$kindChan,string,false,"",false,null);elem[field]=typ;typ.init(elem,sendOnly,recvOnly);}return typ;};var $Chan=function(elem,capacity){if(capacity<0||capacity>2147483647){$throwRuntimeError("makechan: size out of range");}this.$elem=elem;this.$capacity=capacity;this.$buffer=[];this.$sendQueue=[];this.$recvQueue=[];this.$closed=false;};var $chanNil=new $Chan(null,0);$chanNil.$sendQueue=$chanNil.$recvQueue={length:0,push:function(){},shift:function(){return undefined;},indexOf:function(){return-1;}};var $funcTypes={};var $funcType=function(params,results,variadic){var typeKey=$mapArray(params,function(p){return p.id;}).join(",")+"$"+$mapArray(results,function(r){return r.id;}).join(",")+"$"+variadic;var typ=$funcTypes[typeKey];if(typ===undefined){var paramTypes=$mapArray(params,function(p){return p.string;});if(variadic){paramTypes[paramTypes.length-1]="..."+paramTypes[paramTypes.length-1].substr(2);}var string="func("+paramTypes.join(", ")+")";if(results.length===1){string+=" "+results[0].string;}else if(results.length>1){string+=" ("+$mapArray(results,function(r){return r.string;}).join(", ")+")";}typ=$newType(4,$kindFunc,string,false,"",false,null);$funcTypes[typeKey]=typ;typ.init(params,results,variadic);}return typ;};var $interfaceTypes={};var $interfaceType=function(methods){var typeKey=$mapArray(methods,function(m){return m.pkg+","+m.name+","+m.typ.id;}).join("$");var typ=$interfaceTypes[typeKey];if(typ===undefined){var string="interface {}";if(methods.length!==0){string="interface { "+$mapArray(methods,function(m){return(m.pkg!==""?m.pkg+".":"")+m.name+m.typ.string.substr(4);}).join("; ")+" }";}typ=$newType(8,$kindInterface,string,false,"",false,null);$interfaceTypes[typeKey]=typ;typ.init(methods);}return typ;};var $emptyInterface=$interfaceType([]);var $ifaceNil={};var $error=$newType(8,$kindInterface,"error",true,"",false,null);$error.init([{prop:"Error",name:"Error",pkg:"",typ:$funcType([],[$String],false)}]);var $mapTypes={};var $mapType=function(key,elem){var typeKey=key.id+"$"+elem.id;var typ=$mapTypes[typeKey];if(typ===undefined){typ=$newType(4,$kindMap,"map["+key.string+"]"+elem.string,false,"",false,null);$mapTypes[typeKey]=typ;typ.init(key,elem);}return typ;};var $makeMap=function(keyForFunc,entries){var m={};for(var i=0;i<entries.length;i++){var e=entries[i];m[keyForFunc(e.k)]=e;}return m;};var $ptrType=function(elem){var typ=elem.ptr;if(typ===undefined){typ=$newType(4,$kindPtr,"*"+elem.string,false,"",elem.exported,null);elem.ptr=typ;typ.init(elem);}return typ;};var $newDataPointer=function(data,constructor){if(constructor.elem.kind===$kindStruct){return data;}return new constructor(function(){return data;},function(v){data=v;});};var $indexPtr=function(array,index,constructor){array.$ptr=array.$ptr||{};return array.$ptr[index]||(array.$ptr[index]=new constructor(function(){return array[index];},function(v){array[index]=v;}));};var $sliceType=function(elem){var typ=elem.slice;if(typ===undefined){typ=$newType(12,$kindSlice,"[]"+elem.string,false,"",false,null);elem.slice=typ;typ.init(elem);}return typ;};var $makeSlice=function(typ,length,capacity){capacity=capacity||length;if(length<0||length>2147483647){$throwRuntimeError("makeslice: len out of range");}if(capacity<0||capacity<length||capacity>2147483647){$throwRuntimeError("makeslice: cap out of range");}var array=new typ.nativeArray(capacity);if(typ.nativeArray===Array){for(var i=0;i<capacity;i++){array[i]=typ.elem.zero();}}var slice=new typ(array);slice.$length=length;return slice;};var $structTypes={};var $structType=function(pkgPath,fields){var typeKey=$mapArray(fields,function(f){return f.name+","+f.typ.id+","+f.tag;}).join("$");var typ=$structTypes[typeKey];if(typ===undefined){var string="struct { "+$mapArray(fields,function(f){return f.name+" "+f.typ.string+(f.tag!==""?(" \""+f.tag.replace(/\\/g,"\\\\").replace(/"/g, "\\\"")+"\""):"");}).join("; ")+" }";if(fields.length===0){string="struct {}";}typ=$newType(0,$kindStruct,string,false,"",false,function(){this.$val=this;for(var i=0;i<fields.length;i++){var f=fields[i];var arg=arguments[i];this[f.prop]=arg!==undefined?arg:f.typ.zero();}});$structTypes[typeKey]=typ;typ.init(pkgPath,fields);}return typ;};var $assertType=function(value,type,returnTuple){var isInterface=(type.kind===$kindInterface),ok,missingMethod="";if(value===$ifaceNil){ok=false;}else if(!isInterface){ok=value.constructor===type;}else{var valueTypeString=value.constructor.string;ok=type.implementedBy[valueTypeString];if(ok===undefined){ok=true;var valueMethodSet=$methodSet(value.constructor);var interfaceMethods=type.methods;for(var i=0;i<interfaceMethods.length;i++){var tm=interfaceMethods[i];var found=false;for(var j=0;j<valueMethodSet.length;j++){var vm=valueMethodSet[j];if(vm.name===tm.name&&vm.pkg===tm.pkg&&vm.typ===tm.typ){found=true;break;}}if(!found){ok=false;type.missingMethodFor[valueTypeString]=tm.name;break;}}type.implementedBy[valueTypeString]=ok;}if(!ok){missingMethod=type.missingMethodFor[valueTypeString];}}if(!ok){if(returnTuple){return[type.zero(),false];}$panic(new $packages["runtime"].TypeAssertionError.ptr("",(value===$ifaceNil?"":value.constructor.string),type.string,missingMethod));}if(!isInterface){value=value.$val;}if(type===$jsObjectPtr){value=value.object;}return returnTuple?[value,true]:value;};var $stackDepthOffset=0;var $getStackDepth=function(){var err=new Error();if(err.stack===undefined){return undefined;}return $stackDepthOffset+err.stack.split("\n").length;};var $panicStackDepth=null,$panicValue;var $callDeferred=function(deferred,jsErr,fromPanic){if(!fromPanic&&deferred!==null&&deferred.index>=$curGoroutine.deferStack.length){throw jsErr;}if(jsErr!==null){var newErr=null;try{$curGoroutine.deferStack.push(deferred);$panic(new $jsErrorPtr(jsErr));}catch(err){newErr=err;}$curGoroutine.deferStack.pop();$callDeferred(deferred,newErr);return;}if($curGoroutine.asleep){return;}$stackDepthOffset--;var outerPanicStackDepth=$panicStackDepth;var outerPanicValue=$panicValue;var localPanicValue=$curGoroutine.panicStack.pop();if(localPanicValue!==undefined){$panicStackDepth=$getStackDepth();$panicValue=localPanicValue;}try{while(true){if(deferred===null){deferred=$curGoroutine.deferStack[$curGoroutine.deferStack.length-1];if(deferred===undefined){$panicStackDepth=null;if(localPanicValue.Object instanceof Error){throw localPanicValue.Object;}var msg;if(localPanicValue.constructor===$String){msg=localPanicValue.$val;}else if(localPanicValue.Error!==undefined){msg=localPanicValue.Error();}else if(localPanicValue.String!==undefined){msg=localPanicValue.String();}else{msg=localPanicValue;}throw new Error(msg);}}var call=deferred.pop();if(call===undefined){$curGoroutine.deferStack.pop();if(localPanicValue!==undefined){deferred=null;continue;}return;}var r=call[0].apply(call[2],call[1]);if(r&&r.$blk!==undefined){deferred.push([r.$blk,[],r]);if(fromPanic){throw null;}return;}if(localPanicValue!==undefined&&$panicStackDepth===null){throw null;}}}finally{if(localPanicValue!==undefined){if($panicStackDepth!==null){$curGoroutine.panicStack.push(localPanicValue);}$panicStackDepth=outerPanicStackDepth;$panicValue=outerPanicValue;}$stackDepthOffset++;}};var $panic=function(value){$curGoroutine.panicStack.push(value);$callDeferred(null,null,true);};var $recover=function(){if($panicStackDepth===null||($panicStackDepth!==undefined&&$panicStackDepth!==$getStackDepth()-2)){return $ifaceNil;}$panicStackDepth=null;return $panicValue;};var $throw=function(err){throw err;};var $noGoroutine={asleep:false,exit:false,deferStack:[],panicStack:[]};var $curGoroutine=$noGoroutine,$totalGoroutines=0,$awakeGoroutines=0,$checkForDeadlock=true;var $mainFinished=false;var $go=function(fun,args){$totalGoroutines++;$awakeGoroutines++;var $goroutine=function(){try{$curGoroutine=$goroutine;var r=fun.apply(undefined,args);if(r&&r.$blk!==undefined){fun=function(){return r.$blk();};args=[];return;}$goroutine.exit=true;}catch(err){if(!$goroutine.exit){throw err;}}finally{$curGoroutine=$noGoroutine;if($goroutine.exit){$totalGoroutines--;$goroutine.asleep=true;}if($goroutine.asleep){$awakeGoroutines--;if(!$mainFinished&&$awakeGoroutines===0&&$checkForDeadlock){console.error("fatal error: all goroutines are asleep - deadlock!");if($global.process!==undefined){$global.process.exit(2);}}}}};$goroutine.asleep=false;$goroutine.exit=false;$goroutine.deferStack=[];$goroutine.panicStack=[];$schedule($goroutine);};var $scheduled=[];var $runScheduled=function(){try{var r;while((r=$scheduled.shift())!==undefined){r();}}finally{if($scheduled.length>0){setTimeout($runScheduled,0);}}};var $schedule=function(goroutine){if(goroutine.asleep){goroutine.asleep=false;$awakeGoroutines++;}$scheduled.push(goroutine);if($curGoroutine===$noGoroutine){$runScheduled();}};var $setTimeout=function(f,t){$awakeGoroutines++;return setTimeout(function(){$awakeGoroutines--;f();},t);};var $block=function(){if($curGoroutine===$noGoroutine){$throwRuntimeError("cannot block in JavaScript callback, fix by wrapping code in goroutine");}$curGoroutine.asleep=true;};var $send=function(chan,value){if(chan.$closed){$throwRuntimeError("send on closed channel");}var queuedRecv=chan.$recvQueue.shift();if(queuedRecv!==undefined){queuedRecv([value,true]);return;}if(chan.$buffer.length<chan.$capacity){chan.$buffer.push(value);return;}var thisGoroutine=$curGoroutine;var closedDuringSend;chan.$sendQueue.push(function(closed){closedDuringSend=closed;$schedule(thisGoroutine);return value;});$block();return{$blk:function(){if(closedDuringSend){$throwRuntimeError("send on closed channel");}}};};var $recv=function(chan){var queuedSend=chan.$sendQueue.shift();if(queuedSend!==undefined){chan.$buffer.push(queuedSend(false));}var bufferedValue=chan.$buffer.shift();if(bufferedValue!==undefined){return[bufferedValue,true];}if(chan.$closed){return[chan.$elem.zero(),false];}var thisGoroutine=$curGoroutine;var f={$blk:function(){return this.value;}};var queueEntry=function(v){f.value=v;$schedule(thisGoroutine);};chan.$recvQueue.push(queueEntry);$block();return f;};var $close=function(chan){if(chan.$closed){$throwRuntimeError("close of closed channel");}chan.$closed=true;while(true){var queuedSend=chan.$sendQueue.shift();if(queuedSend===undefined){break;}queuedSend(true);}while(true){var queuedRecv=chan.$recvQueue.shift();if(queuedRecv===undefined){break;}queuedRecv([chan.$elem.zero(),false]);}};var $select=function(comms){var ready=[];var selection=-1;for(var i=0;i<comms.length;i++){var comm=comms[i];var chan=comm[0];switch(comm.length){case 0:selection=i;break;case 1:if(chan.$sendQueue.length!==0||chan.$buffer.length!==0||chan.$closed){ready.push(i);}break;case 2:if(chan.$closed){$throwRuntimeError("send on closed channel");}if(chan.$recvQueue.length!==0||chan.$buffer.length<chan.$capacity){ready.push(i);}break;}}if(ready.length!==0){selection=ready[Math.floor(Math.random()*ready.length)];}if(selection!==-1){var comm=comms[selection];switch(comm.length){case 0:return[selection];case 1:return[selection,$recv(comm[0])];case 2:$send(comm[0],comm[1]);return[selection];}}var entries=[];var thisGoroutine=$curGoroutine;var f={$blk:function(){return this.selection;}};var removeFromQueues=function(){for(var i=0;i<entries.length;i++){var entry=entries[i];var queue=entry[0];var index=queue.indexOf(entry[1]);if(index!==-1){queue.splice(index,1);}}};for(var i=0;i<comms.length;i++){(function(i){var comm=comms[i];switch(comm.length){case 1:var queueEntry=function(value){f.selection=[i,value];removeFromQueues();$schedule(thisGoroutine);};entries.push([comm[0].$recvQueue,queueEntry]);comm[0].$recvQueue.push(queueEntry);break;case 2:var queueEntry=function(){if(comm[0].$closed){$throwRuntimeError("send on closed channel");}f.selection=[i];removeFromQueues();$schedule(thisGoroutine);return comm[1];};entries.push([comm[0].$sendQueue,queueEntry]);comm[0].$sendQueue.push(queueEntry);break;}})(i);}$block();return f;};var $jsObjectPtr,$jsErrorPtr;var $needsExternalization=function(t){switch(t.kind){case $kindBool:case $kindInt:case $kindInt8:case $kindInt16:case $kindInt32:case $kindUint:case $kindUint8:case $kindUint16:case $kindUint32:case $kindUintptr:case $kindFloat32:case $kindFloat64:return false;default:return t!==$jsObjectPtr;}};var $externalize=function(v,t){if(t===$jsObjectPtr){return v;}switch(t.kind){case $kindBool:case $kindInt:case $kindInt8:case $kindInt16:case $kindInt32:case $kindUint:case $kindUint8:case $kindUint16:case $kindUint32:case $kindUintptr:case $kindFloat32:case $kindFloat64:return v;case $kindInt64:case $kindUint64:return $flatten64(v);case $kindArray:if($needsExternalization(t.elem)){return $mapArray(v,function(e){return $externalize(e,t.elem);});}return v;case $kindFunc:return $externalizeFunction(v,t,false);case $kindInterface:if(v===$ifaceNil){return null;}if(v.constructor===$jsObjectPtr){return v.$val.object;}return $externalize(v.$val,v.constructor);case $kindMap:var m={};var keys=$keys(v);for(var i=0;i<keys.length;i++){var entry=v[keys[i]];m[$externalize(entry.k,t.key)]=$externalize(entry.v,t.elem);}return m;case $kindPtr:if(v===t.nil){return null;}return $externalize(v.$get(),t.elem);case $kindSlice:if($needsExternalization(t.elem)){return $mapArray($sliceToArray(v),function(e){return $externalize(e,t.elem);});}return $sliceToArray(v);case $kindString:if($isASCII(v)){return v;}var s="",r;for(var i=0;i<v.length;i+=r[1]){r=$decodeRune(v,i);var c=r[0];if(c>0xFFFF){var h=Math.floor((c-0x10000)/0x400)+0xD800;var l=(c-0x10000)%0x400+0xDC00;s+=String.fromCharCode(h,l);continue;}s+=String.fromCharCode(c);}return s;case $kindStruct:var timePkg=$packages["time"];if(timePkg!==undefined&&v.constructor===timePkg.Time.ptr){var milli=$div64(v.UnixNano(),new $Int64(0,1000000));return new Date($flatten64(milli));}var noJsObject={};var searchJsObject=function(v,t){if(t===$jsObjectPtr){return v;}switch(t.kind){case $kindPtr:if(v===t.nil){return noJsObject;}return searchJsObject(v.$get(),t.elem);case $kindStruct:var f=t.fields[0];return searchJsObject(v[f.prop],f.typ);case $kindInterface:return searchJsObject(v.$val,v.constructor);default:return noJsObject;}};var o=searchJsObject(v,t);if(o!==noJsObject){return o;}o={};for(var i=0;i<t.fields.length;i++){var f=t.fields[i];if(!f.exported){continue;}o[f.name]=$externalize(v[f.prop],f.typ);}return o;}$throwRuntimeError("cannot externalize "+t.string);};var $externalizeFunction=function(v,t,passThis){if(v===$throwNilPointerError){return null;}if(v.$externalizeWrapper===undefined){$checkForDeadlock=false;v.$externalizeWrapper=function(){var args=[];for(var i=0;i<t.params.length;i++){if(t.variadic&&i===t.params.length-1){var vt=t.params[i].elem,varargs=[];for(var j=i;j<arguments.length;j++){varargs.push($internalize(arguments[j],vt));}args.push(new(t.params[i])(varargs));break;}args.push($internalize(arguments[i],t.params[i]));}var result=v.apply(passThis?this:undefined,args);switch(t.results.length){case 0:return;case 1:return $externalize(result,t.results[0]);default:for(var i=0;i<t.results.length;i++){result[i]=$externalize(result[i],t.results[i]);}return result;}};}return v.$externalizeWrapper;};var $internalize=function(v,t,recv){if(t===$jsObjectPtr){return v;}if(t===$jsObjectPtr.elem){$throwRuntimeError("cannot internalize js.Object, use *js.Object instead");}if(v&&v.__internal_object__!==undefined){return $assertType(v.__internal_object__,t,false);}var timePkg=$packages["time"];if(timePkg!==undefined&&t===timePkg.Time){if(!(v!==null&&v!==undefined&&v.constructor===Date)){$throwRuntimeError("cannot internalize time.Time from "+typeof v+", must be Date");}return timePkg.Unix(new $Int64(0,0),new $Int64(0,v.getTime()*1000000));}switch(t.kind){case $kindBool:return!!v;case $kindInt:return parseInt(v);case $kindInt8:return parseInt(v)<<24>>24;case $kindInt16:return parseInt(v)<<16>>16;case $kindInt32:return parseInt(v)>>0;case $kindUint:return parseInt(v);case $kindUint8:return parseInt(v)<<24>>>24;case $kindUint16:return parseInt(v)<<16>>>16;case $kindUint32:case $kindUintptr:return parseInt(v)>>>0;case $kindInt64:case $kindUint64:return new t(0,v);case $kindFloat32:case $kindFloat64:return parseFloat(v);case $kindArray:if(v.length!==t.len){$throwRuntimeError("got array with wrong size from JavaScript native");}return $mapArray(v,function(e){return $internalize(e,t.elem);});case $kindFunc:return function(){var args=[];for(var i=0;i<t.params.length;i++){if(t.variadic&&i===t.params.length-1){var vt=t.params[i].elem,varargs=arguments[i];for(var j=0;j<varargs.$length;j++){args.push($externalize(varargs.$array[varargs.$offset+j],vt));}break;}args.push($externalize(arguments[i],t.params[i]));}var result=v.apply(recv,args);switch(t.results.length){case 0:return;case 1:return $internalize(result,t.results[0]);default:for(var i=0;i<t.results.length;i++){result[i]=$internalize(result[i],t.results[i]);}return result;}};case $kindInterface:if(t.methods.length!==0){$throwRuntimeError("cannot internalize "+t.string);}if(v===null){return $ifaceNil;}if(v===undefined){return new $jsObjectPtr(undefined);}switch(v.constructor){case Int8Array:return new($sliceType($Int8))(v);case Int16Array:return new($sliceType($Int16))(v);case Int32Array:return new($sliceType($Int))(v);case Uint8Array:return new($sliceType($Uint8))(v);case Uint16Array:return new($sliceType($Uint16))(v);case Uint32Array:return new($sliceType($Uint))(v);case Float32Array:return new($sliceType($Float32))(v);case Float64Array:return new($sliceType($Float64))(v);case Array:return $internalize(v,$sliceType($emptyInterface));case Boolean:return new $Bool(!!v);case Date:if(timePkg===undefined){return new $jsObjectPtr(v);}return new timePkg.Time($internalize(v,timePkg.Time));case Function:var funcType=$funcType([$sliceType($emptyInterface)],[$jsObjectPtr],true);return new funcType($internalize(v,funcType));case Number:return new $Float64(parseFloat(v));case String:return new $String($internalize(v,$String));default:if($global.Node&&v instanceof $global.Node){return new $jsObjectPtr(v);}var mapType=$mapType($String,$emptyInterface);return new mapType($internalize(v,mapType));}case $kindMap:var m={};var keys=$keys(v);for(var i=0;i<keys.length;i++){var k=$internalize(keys[i],t.key);m[t.key.keyFor(k)]={k:k,v:$internalize(v[keys[i]],t.elem)};}return m;case $kindPtr:if(t.elem.kind===$kindStruct){return $internalize(v,t.elem);}case $kindSlice:return new t($mapArray(v,function(e){return $internalize(e,t.elem);}));case $kindString:v=String(v);if($isASCII(v)){return v;}var s="";var i=0;while(i<v.length){var h=v.charCodeAt(i);if(0xD800<=h&&h<=0xDBFF){var l=v.charCodeAt(i+1);var c=(h-0xD800)*0x400+l-0xDC00+0x10000;s+=$encodeRune(c);i+=2;continue;}s+=$encodeRune(h);i++;}return s;case $kindStruct:var noJsObject={};var searchJsObject=function(t){if(t===$jsObjectPtr){return v;}if(t===$jsObjectPtr.elem){$throwRuntimeError("cannot internalize js.Object, use *js.Object instead");}switch(t.kind){case $kindPtr:return searchJsObject(t.elem);case $kindStruct:var f=t.fields[0];var o=searchJsObject(f.typ);if(o!==noJsObject){var n=new t.ptr();n[f.prop]=o;return n;}return noJsObject;default:return noJsObject;}};var o=searchJsObject(t);if(o!==noJsObject){return o;}}$throwRuntimeError("cannot internalize "+t.string);};var $isASCII=function(s){for(var i=0;i<s.length;i++){if(s.charCodeAt(i)>=128){return false;}}return true;};
-  $packages["github.com/gopherjs/gopherjs/js"]=(function(){var $pkg={},$init,A,B,L,N,Q,K;A=$pkg.Object=$newType(0,$kindStruct,"js.Object",true,"github.com/gopherjs/gopherjs/js",true,function(object_){this.$val=this;if(arguments.length===0){this.object=null;return;}this.object=object_;});B=$pkg.Error=$newType(0,$kindStruct,"js.Error",true,"github.com/gopherjs/gopherjs/js",true,function(Object_){this.$val=this;if(arguments.length===0){this.Object=null;return;}this.Object=Object_;});L=$sliceType($emptyInterface);N=$ptrType(A);Q=$ptrType(B);A.ptr.prototype.Get=function(a){var a,b;b=this;return b.object[$externalize(a,$String)];};A.prototype.Get=function(a){return this.$val.Get(a);};A.ptr.prototype.Set=function(a,b){var a,b,c;c=this;c.object[$externalize(a,$String)]=$externalize(b,$emptyInterface);};A.prototype.Set=function(a,b){return this.$val.Set(a,b);};A.ptr.prototype.Delete=function(a){var a,b;b=this;delete b.object[$externalize(a,$String)];};A.prototype.Delete=function(a){return this.$val.Delete(a);};A.ptr.prototype.Length=function(){var a;a=this;return $parseInt(a.object.length);};A.prototype.Length=function(){return this.$val.Length();};A.ptr.prototype.Index=function(a){var a,b;b=this;return b.object[a];};A.prototype.Index=function(a){return this.$val.Index(a);};A.ptr.prototype.SetIndex=function(a,b){var a,b,c;c=this;c.object[a]=$externalize(b,$emptyInterface);};A.prototype.SetIndex=function(a,b){return this.$val.SetIndex(a,b);};A.ptr.prototype.Call=function(a,b){var a,b,c,d;c=this;return(d=c.object,d[$externalize(a,$String)].apply(d,$externalize(b,L)));};A.prototype.Call=function(a,b){return this.$val.Call(a,b);};A.ptr.prototype.Invoke=function(a){var a,b;b=this;return b.object.apply(undefined,$externalize(a,L));};A.prototype.Invoke=function(a){return this.$val.Invoke(a);};A.ptr.prototype.New=function(a){var a,b;b=this;return new($global.Function.prototype.bind.apply(b.object,[undefined].concat($externalize(a,L))));};A.prototype.New=function(a){return this.$val.New(a);};A.ptr.prototype.Bool=function(){var a;a=this;return!!(a.object);};A.prototype.Bool=function(){return this.$val.Bool();};A.ptr.prototype.String=function(){var a;a=this;return $internalize(a.object,$String);};A.prototype.String=function(){return this.$val.String();};A.ptr.prototype.Int=function(){var a;a=this;return $parseInt(a.object)>>0;};A.prototype.Int=function(){return this.$val.Int();};A.ptr.prototype.Int64=function(){var a;a=this;return $internalize(a.object,$Int64);};A.prototype.Int64=function(){return this.$val.Int64();};A.ptr.prototype.Uint64=function(){var a;a=this;return $internalize(a.object,$Uint64);};A.prototype.Uint64=function(){return this.$val.Uint64();};A.ptr.prototype.Float=function(){var a;a=this;return $parseFloat(a.object);};A.prototype.Float=function(){return this.$val.Float();};A.ptr.prototype.Interface=function(){var a;a=this;return $internalize(a.object,$emptyInterface);};A.prototype.Interface=function(){return this.$val.Interface();};A.ptr.prototype.Unsafe=function(){var a;a=this;return a.object;};A.prototype.Unsafe=function(){return this.$val.Unsafe();};B.ptr.prototype.Error=function(){var a;a=this;return"JavaScript error: "+$internalize(a.Object.message,$String);};B.prototype.Error=function(){return this.$val.Error();};B.ptr.prototype.Stack=function(){var a;a=this;return $internalize(a.Object.stack,$String);};B.prototype.Stack=function(){return this.$val.Stack();};K=function(){var a;a=new B.ptr(null);$unused(a);};N.methods=[{prop:"Get",name:"Get",pkg:"",typ:$funcType([$String],[N],false)},{prop:"Set",name:"Set",pkg:"",typ:$funcType([$String,$emptyInterface],[],false)},{prop:"Delete",name:"Delete",pkg:"",typ:$funcType([$String],[],false)},{prop:"Length",name:"Length",pkg:"",typ:$funcType([],[$Int],false)},{prop:"Index",name:"Index",pkg:"",typ:$funcType([$Int],[N],false)},{prop:"SetIndex",name:"SetIndex",pkg:"",typ:$funcType([$Int,$emptyInterface],[],false)},{prop:"Call",name:"Call",pkg:"",typ:$funcType([$String,L],[N],true)},{prop:"Invoke",name:"Invoke",pkg:"",typ:$funcType([L],[N],true)},{prop:"New",name:"New",pkg:"",typ:$funcType([L],[N],true)},{prop:"Bool",name:"Bool",pkg:"",typ:$funcType([],[$Bool],false)},{prop:"String",name:"String",pkg:"",typ:$funcType([],[$String],false)},{prop:"Int",name:"Int",pkg:"",typ:$funcType([],[$Int],false)},{prop:"Int64",name:"Int64",pkg:"",typ:$funcType([],[$Int64],false)},{prop:"Uint64",name:"Uint64",pkg:"",typ:$funcType([],[$Uint64],false)},{prop:"Float",name:"Float",pkg:"",typ:$funcType([],[$Float64],false)},{prop:"Interface",name:"Interface",pkg:"",typ:$funcType([],[$emptyInterface],false)},{prop:"Unsafe",name:"Unsafe",pkg:"",typ:$funcType([],[$Uintptr],false)}];Q.methods=[{prop:"Error",name:"Error",pkg:"",typ:$funcType([],[$String],false)},{prop:"Stack",name:"Stack",pkg:"",typ:$funcType([],[$String],false)}];A.init("github.com/gopherjs/gopherjs/js",[{prop:"object",name:"object",anonymous:false,exported:false,typ:N,tag:""}]);B.init("",[{prop:"Object",name:"Object",anonymous:true,exported:true,typ:N,tag:""}]);$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:K();}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["runtime/internal/sys"]=(function(){var $pkg={},$init;$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["runtime"]=(function(){var $pkg={},$init,B,A,AL,AM,BC,E,AJ;B=$packages["github.com/gopherjs/gopherjs/js"];A=$packages["runtime/internal/sys"];AL=$pkg.TypeAssertionError=$newType(0,$kindStruct,"runtime.TypeAssertionError",true,"runtime",true,function(interfaceString_,concreteString_,assertedString_,missingMethod_){this.$val=this;if(arguments.length===0){this.interfaceString="";this.concreteString="";this.assertedString="";this.missingMethod="";return;}this.interfaceString=interfaceString_;this.concreteString=concreteString_;this.assertedString=assertedString_;this.missingMethod=missingMethod_;});AM=$pkg.errorString=$newType(8,$kindString,"runtime.errorString",true,"runtime",false,null);BC=$ptrType(AL);E=function(){var a,b;a=$packages[$externalize("github.com/gopherjs/gopherjs/js",$String)];$jsObjectPtr=a.Object.ptr;$jsErrorPtr=a.Error.ptr;$throwRuntimeError=AJ;b=$ifaceNil;b=new AL.ptr("","","","");$unused(b);};AJ=function(a){var a;$panic(new AM((a)));};AL.ptr.prototype.RuntimeError=function(){};AL.prototype.RuntimeError=function(){return this.$val.RuntimeError();};AL.ptr.prototype.Error=function(){var a,b;a=this;b=a.interfaceString;if(b===""){b="interface";}if(a.concreteString===""){return"interface conversion: "+b+" is nil, not "+a.assertedString;}if(a.missingMethod===""){return"interface conversion: "+b+" is "+a.concreteString+", not "+a.assertedString;}return"interface conversion: "+a.concreteString+" is not "+a.assertedString+": missing method "+a.missingMethod;};AL.prototype.Error=function(){return this.$val.Error();};AM.prototype.RuntimeError=function(){var a;a=this.$val;};$ptrType(AM).prototype.RuntimeError=function(){return new AM(this.$get()).RuntimeError();};AM.prototype.Error=function(){var a;a=this.$val;return"runtime error: "+(a);};$ptrType(AM).prototype.Error=function(){return new AM(this.$get()).Error();};BC.methods=[{prop:"RuntimeError",name:"RuntimeError",pkg:"",typ:$funcType([],[],false)},{prop:"Error",name:"Error",pkg:"",typ:$funcType([],[$String],false)}];AM.methods=[{prop:"RuntimeError",name:"RuntimeError",pkg:"",typ:$funcType([],[],false)},{prop:"Error",name:"Error",pkg:"",typ:$funcType([],[$String],false)}];AL.init("runtime",[{prop:"interfaceString",name:"interfaceString",anonymous:false,exported:false,typ:$String,tag:""},{prop:"concreteString",name:"concreteString",anonymous:false,exported:false,typ:$String,tag:""},{prop:"assertedString",name:"assertedString",anonymous:false,exported:false,typ:$String,tag:""},{prop:"missingMethod",name:"missingMethod",anonymous:false,exported:false,typ:$String,tag:""}]);$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=B.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=A.$init();$s=2;case 2:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}E();}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["errors"]=(function(){var $pkg={},$init,B,C,A;B=$pkg.errorString=$newType(0,$kindStruct,"errors.errorString",true,"errors",false,function(s_){this.$val=this;if(arguments.length===0){this.s="";return;}this.s=s_;});C=$ptrType(B);A=function(a){var a;return new B.ptr(a);};$pkg.New=A;B.ptr.prototype.Error=function(){var a;a=this;return a.s;};B.prototype.Error=function(){return this.$val.Error();};C.methods=[{prop:"Error",name:"Error",pkg:"",typ:$funcType([],[$String],false)}];B.init("errors",[{prop:"s",name:"s",anonymous:false,exported:false,typ:$String,tag:""}]);$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["internal/race"]=(function(){var $pkg={},$init,A,B;A=function(a){var a;};$pkg.Acquire=A;B=function(a){var a;};$pkg.Release=B;$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["sync/atomic"]=(function(){var $pkg={},$init,A,H,N;A=$packages["github.com/gopherjs/gopherjs/js"];H=function(ad,ae,af){var ad,ae,af;if(ad.$get()===ae){ad.$set(af);return true;}return false;};$pkg.CompareAndSwapInt32=H;N=function(ad,ae){var ad,ae,af;af=ad.$get()+ae>>0;ad.$set(af);return af;};$pkg.AddInt32=N;$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["sync"]=(function(){var $pkg={},$init,A,C,D,B,F,Y,AB,AC,AN,AX,AY,AZ,BA,BB,BH,BK,BL,BP,BZ,CC,H,U,AI,G,I,J,K,L,M,N,AG,AJ,AK,AS,AT;A=$packages["github.com/gopherjs/gopherjs/js"];C=$packages["internal/race"];D=$packages["runtime"];B=$packages["sync/atomic"];F=$pkg.Pool=$newType(0,$kindStruct,"sync.Pool",true,"sync",true,function(local_,localSize_,store_,New_){this.$val=this;if(arguments.length===0){this.local=0;this.localSize=0;this.store=BL.nil;this.New=$throwNilPointerError;return;}this.local=local_;this.localSize=localSize_;this.store=store_;this.New=New_;});Y=$pkg.Mutex=$newType(0,$kindStruct,"sync.Mutex",true,"sync",true,function(state_,sema_){this.$val=this;if(arguments.length===0){this.state=0;this.sema=0;return;}this.state=state_;this.sema=sema_;});AB=$pkg.poolLocalInternal=$newType(0,$kindStruct,"sync.poolLocalInternal",true,"sync",false,function(private$0_,shared_,Mutex_){this.$val=this;if(arguments.length===0){this.private$0=$ifaceNil;this.shared=BL.nil;this.Mutex=new Y.ptr(0,0);return;}this.private$0=private$0_;this.shared=shared_;this.Mutex=Mutex_;});AC=$pkg.poolLocal=$newType(0,$kindStruct,"sync.poolLocal",true,"sync",false,function(poolLocalInternal_,pad_){this.$val=this;if(arguments.length===0){this.poolLocalInternal=new AB.ptr($ifaceNil,BL.nil,new Y.ptr(0,0));this.pad=CC.zero();return;}this.poolLocalInternal=poolLocalInternal_;this.pad=pad_;});AN=$pkg.notifyList=$newType(0,$kindStruct,"sync.notifyList",true,"sync",false,function(wait_,notify_,lock_,head_,tail_){this.$val=this;if(arguments.length===0){this.wait=0;this.notify=0;this.lock=0;this.head=0;this.tail=0;return;}this.wait=wait_;this.notify=notify_;this.lock=lock_;this.head=head_;this.tail=tail_;});AX=$ptrType(F);AY=$sliceType(AX);AZ=$ptrType($Uint32);BA=$chanType($Bool,false,false);BB=$sliceType(BA);BH=$ptrType($Int32);BK=$ptrType(AC);BL=$sliceType($emptyInterface);BP=$funcType([],[$emptyInterface],false);BZ=$ptrType(Y);CC=$arrayType($Uint8,100);F.ptr.prototype.Get=function(){var k,l,m,n,o,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:k=this;if(k.store.$length===0){$s=1;continue;}$s=2;continue;case 1:if(!(k.New===$throwNilPointerError)){$s=3;continue;}$s=4;continue;case 3:l=k.New();$s=5;case 5:if($c){$c=false;l=l.$blk();}if(l&&l.$blk!==undefined){break s;}$s=-1;return l;case 4:$s=-1;return $ifaceNil;case 2:o=(m=k.store,n=k.store.$length-1>>0,((n<0||n>=m.$length)?($throwRuntimeError("index out of range"),undefined):m.$array[m.$offset+n]));k.store=$subslice(k.store,0,(k.store.$length-1>>0));$s=-1;return o;}return;}if($f===undefined){$f={$blk:F.ptr.prototype.Get};}$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.$s=$s;$f.$r=$r;return $f;};F.prototype.Get=function(){return this.$val.Get();};F.ptr.prototype.Put=function(k){var k,l;l=this;if($interfaceIsEqual(k,$ifaceNil)){return;}l.store=$append(l.store,k);};F.prototype.Put=function(k){return this.$val.Put(k);};G=function(k){var k;};I=function(k){var k,l,m,n,o,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:if(k.$get()===0){$s=1;continue;}$s=2;continue;case 1:l=new $Chan($Bool,0);m=k;(H||$throwRuntimeError("assignment to entry in nil map"))[AZ.keyFor(m)]={k:m,v:$append((n=H[AZ.keyFor(k)],n!==undefined?n.v:BB.nil),l)};o=$recv(l);$s=3;case 3:if($c){$c=false;o=o.$blk();}if(o&&o.$blk!==undefined){break s;}o[0];case 2:k.$set(k.$get()-(1)>>>0);$s=-1;return;}return;}if($f===undefined){$f={$blk:I};}$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.$s=$s;$f.$r=$r;return $f;};J=function(k,l){var k,l,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;k=$f.k;l=$f.l;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=I(k);$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=-1;return;}return;}if($f===undefined){$f={$blk:J};}$f.k=k;$f.l=l;$f.$s=$s;$f.$r=$r;return $f;};K=function(k,l){var k,l,m,n,o,p,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;p=$f.p;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:k.$set(k.$get()+(1)>>>0);n=(m=H[AZ.keyFor(k)],m!==undefined?m.v:BB.nil);if(n.$length===0){$s=-1;return;}o=(0>=n.$length?($throwRuntimeError("index out of range"),undefined):n.$array[n.$offset+0]);n=$subslice(n,1);p=k;(H||$throwRuntimeError("assignment to entry in nil map"))[AZ.keyFor(p)]={k:p,v:n};if(n.$length===0){delete H[AZ.keyFor(k)];}$r=$send(o,true);$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=-1;return;}return;}if($f===undefined){$f={$blk:K};}$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.p=p;$f.$s=$s;$f.$r=$r;return $f;};L=function(k){var k;};M=function(k){var k;return false;};N=function(){return $mul64($internalize(new($global.Date)().getTime(),$Int64),new $Int64(0,1000000));};Y.ptr.prototype.Lock=function(){var k,l,m,n,o,p,q,r,s,t,u,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;p=$f.p;q=$f.q;r=$f.r;s=$f.s;t=$f.t;u=$f.u;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:k=this;if(B.CompareAndSwapInt32((k.$ptr_state||(k.$ptr_state=new BH(function(){return this.$target.state;},function($v){this.$target.state=$v;},k))),0,1)){if(false){C.Acquire((k));}$s=-1;return;}l=new $Int64(0,0);m=false;n=false;o=0;p=k.state;case 1:if(((p&5)===1)&&M(o)){$s=3;continue;}$s=4;continue;case 3:if(!n&&((p&2)===0)&&!(((p>>3>>0)===0))&&B.CompareAndSwapInt32((k.$ptr_state||(k.$ptr_state=new BH(function(){return this.$target.state;},function($v){this.$target.state=$v;},k))),p,p|2)){n=true;}AT();o=o+(1)>>0;p=k.state;$s=1;continue;case 4:q=p;if((p&4)===0){q=q|(1);}if(!(((p&5)===0))){q=q+(8)>>0;}if(m&&!(((p&1)===0))){q=q|(4);}if(n){if((q&2)===0){$panic(new $String("sync: inconsistent mutex state"));}q=(q&~(2))>>0;}if(B.CompareAndSwapInt32((k.$ptr_state||(k.$ptr_state=new BH(function(){return this.$target.state;},function($v){this.$target.state=$v;},k))),p,q)){$s=5;continue;}$s=6;continue;case 5:if((p&5)===0){$s=2;continue;}r=!((l.$high===0&&l.$low===0));if((l.$high===0&&l.$low===0)){l=N();}$r=J((k.$ptr_sema||(k.$ptr_sema=new AZ(function(){return this.$target.sema;},function($v){this.$target.sema=$v;},k))),r);$s=8;case 8:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}m=m||(s=(t=N(),new $Int64(t.$high-l.$high,t.$low-l.$low)),(s.$high>0||(s.$high===0&&s.$low>1000000)));p=k.state;if(!(((p&4)===0))){if(!(((p&3)===0))||((p>>3>>0)===0)){$panic(new $String("sync: inconsistent mutex state"));}u=-7;if(!m||((p>>3>>0)===1)){u=u-(4)>>0;}B.AddInt32((k.$ptr_state||(k.$ptr_state=new BH(function(){return this.$target.state;},function($v){this.$target.state=$v;},k))),u);$s=2;continue;}n=true;o=0;$s=7;continue;case 6:p=k.state;case 7:$s=1;continue;case 2:if(false){C.Acquire((k));}$s=-1;return;}return;}if($f===undefined){$f={$blk:Y.ptr.prototype.Lock};}$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.p=p;$f.q=q;$f.r=r;$f.s=s;$f.t=t;$f.u=u;$f.$s=$s;$f.$r=$r;return $f;};Y.prototype.Lock=function(){return this.$val.Lock();};Y.ptr.prototype.Unlock=function(){var k,l,m,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;k=$f.k;l=$f.l;m=$f.m;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:k=this;if(false){$unused(k.state);C.Release((k));}l=B.AddInt32((k.$ptr_state||(k.$ptr_state=new BH(function(){return this.$target.state;},function($v){this.$target.state=$v;},k))),-1);if((((l+1>>0))&1)===0){$panic(new $String("sync: unlock of unlocked mutex"));}if((l&4)===0){$s=1;continue;}$s=2;continue;case 1:m=l;case 4:if(((m>>3>>0)===0)||!(((m&7)===0))){$s=-1;return;}l=((m-8>>0))|2;if(B.CompareAndSwapInt32((k.$ptr_state||(k.$ptr_state=new BH(function(){return this.$target.state;},function($v){this.$target.state=$v;},k))),m,l)){$s=6;continue;}$s=7;continue;case 6:$r=K((k.$ptr_sema||(k.$ptr_sema=new AZ(function(){return this.$target.sema;},function($v){this.$target.sema=$v;},k))),false);$s=8;case 8:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=-1;return;case 7:m=k.state;$s=4;continue;case 5:$s=3;continue;case 2:$r=K((k.$ptr_sema||(k.$ptr_sema=new AZ(function(){return this.$target.sema;},function($v){this.$target.sema=$v;},k))),true);$s=9;case 9:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}case 3:$s=-1;return;}return;}if($f===undefined){$f={$blk:Y.ptr.prototype.Unlock};}$f.k=k;$f.l=l;$f.m=m;$f.$s=$s;$f.$r=$r;return $f;};Y.prototype.Unlock=function(){return this.$val.Unlock();};AG=function(){var k,l,m,n,o,p,q,r,s,t;k=AI;l=0;while(true){if(!(l<k.$length)){break;}m=l;n=((l<0||l>=k.$length)?($throwRuntimeError("index out of range"),undefined):k.$array[k.$offset+l]);((m<0||m>=AI.$length)?($throwRuntimeError("index out of range"),undefined):AI.$array[AI.$offset+m]=AX.nil);o=0;while(true){if(!(o<((n.localSize>>0)))){break;}p=AK(n.local,o);p.poolLocalInternal.private$0=$ifaceNil;q=p.poolLocalInternal.shared;r=0;while(true){if(!(r<q.$length)){break;}s=r;(t=p.poolLocalInternal.shared,((s<0||s>=t.$length)?($throwRuntimeError("index out of range"),undefined):t.$array[t.$offset+s]=$ifaceNil));r++;}p.poolLocalInternal.shared=BL.nil;o=o+(1)>>0;}n.local=0;n.localSize=0;l++;}AI=new AY([]);};AJ=function(){G(AG);};AK=function(k,l){var k,l,m;m=(((k)+($imul(((l>>>0)),128)>>>0)>>>0));return($pointerOfStructConversion(m,BK));};AS=function(){var k;k=new AN.ptr(0,0,0,0,0);L(20);};AT=function(){$throwRuntimeError("native function not implemented: sync.runtime_doSpin");};AX.methods=[{prop:"Get",name:"Get",pkg:"",typ:$funcType([],[$emptyInterface],false)},{prop:"Put",name:"Put",pkg:"",typ:$funcType([$emptyInterface],[],false)},{prop:"getSlow",name:"getSlow",pkg:"sync",typ:$funcType([],[$emptyInterface],false)},{prop:"pin",name:"pin",pkg:"sync",typ:$funcType([],[BK],false)},{prop:"pinSlow",name:"pinSlow",pkg:"sync",typ:$funcType([],[BK],false)}];BZ.methods=[{prop:"Lock",name:"Lock",pkg:"",typ:$funcType([],[],false)},{prop:"Unlock",name:"Unlock",pkg:"",typ:$funcType([],[],false)}];F.init("sync",[{prop:"local",name:"local",anonymous:false,exported:false,typ:$UnsafePointer,tag:""},{prop:"localSize",name:"localSize",anonymous:false,exported:false,typ:$Uintptr,tag:""},{prop:"store",name:"store",anonymous:false,exported:false,typ:BL,tag:""},{prop:"New",name:"New",anonymous:false,exported:true,typ:BP,tag:""}]);Y.init("sync",[{prop:"state",name:"state",anonymous:false,exported:false,typ:$Int32,tag:""},{prop:"sema",name:"sema",anonymous:false,exported:false,typ:$Uint32,tag:""}]);AB.init("sync",[{prop:"private$0",name:"private",anonymous:false,exported:false,typ:$emptyInterface,tag:""},{prop:"shared",name:"shared",anonymous:false,exported:false,typ:BL,tag:""},{prop:"Mutex",name:"Mutex",anonymous:true,exported:true,typ:Y,tag:""}]);AC.init("sync",[{prop:"poolLocalInternal",name:"poolLocalInternal",anonymous:true,exported:false,typ:AB,tag:""},{prop:"pad",name:"pad",anonymous:false,exported:false,typ:CC,tag:""}]);AN.init("sync",[{prop:"wait",name:"wait",anonymous:false,exported:false,typ:$Uint32,tag:""},{prop:"notify",name:"notify",anonymous:false,exported:false,typ:$Uint32,tag:""},{prop:"lock",name:"lock",anonymous:false,exported:false,typ:$Uintptr,tag:""},{prop:"head",name:"head",anonymous:false,exported:false,typ:$UnsafePointer,tag:""},{prop:"tail",name:"tail",anonymous:false,exported:false,typ:$UnsafePointer,tag:""}]);$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=C.$init();$s=2;case 2:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=D.$init();$s=3;case 3:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=B.$init();$s=4;case 4:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}AI=AY.nil;H={};U=(new Uint8Array(8));AJ();AS();}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["io"]=(function(){var $pkg={},$init,A,B,AI,AJ;A=$packages["errors"];B=$packages["sync"];$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=B.$init();$s=2;case 2:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$pkg.ErrShortWrite=A.New("short write");$pkg.ErrShortBuffer=A.New("short buffer");$pkg.EOF=A.New("EOF");$pkg.ErrUnexpectedEOF=A.New("unexpected EOF");$pkg.ErrNoProgress=A.New("multiple Read calls return no data or error");AI=A.New("Seek: invalid whence");AJ=A.New("Seek: invalid offset");$pkg.ErrClosedPipe=A.New("io: read/write on closed pipe");}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["hash"]=(function(){var $pkg={},$init,A,B,E;A=$packages["io"];B=$pkg.Hash=$newType(8,$kindInterface,"hash.Hash",true,"hash",true,null);E=$sliceType($Uint8);B.init([{prop:"BlockSize",name:"BlockSize",pkg:"",typ:$funcType([],[$Int],false)},{prop:"Reset",name:"Reset",pkg:"",typ:$funcType([],[],false)},{prop:"Size",name:"Size",pkg:"",typ:$funcType([],[$Int],false)},{prop:"Sum",name:"Sum",pkg:"",typ:$funcType([E],[E],false)},{prop:"Write",name:"Write",pkg:"",typ:$funcType([E],[$Int,$error],false)}]);$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["math"]=(function(){var $pkg={},$init,A,FP,FQ,FR,FS,B,AY,AZ;A=$packages["github.com/gopherjs/gopherjs/js"];FP=$arrayType($Uint32,2);FQ=$arrayType($Float32,2);FR=$arrayType($Float64,1);FS=$structType("math",[{prop:"uint32array",name:"uint32array",anonymous:false,exported:false,typ:FP,tag:""},{prop:"float32array",name:"float32array",anonymous:false,exported:false,typ:FQ,tag:""},{prop:"float64array",name:"float64array",anonymous:false,exported:false,typ:FR,tag:""}]);AZ=function(){var aw;aw=new($global.ArrayBuffer)(8);AY.uint32array=new($global.Uint32Array)(aw);AY.float32array=new($global.Float32Array)(aw);AY.float64array=new($global.Float64Array)(aw);};$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}AY=new FS.ptr(FP.zero(),FQ.zero(),FR.zero());B=$global.Math;AZ();}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["unicode/utf8"]=(function(){var $pkg={},$init;$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["strconv"]=(function(){var $pkg={},$init,B,A,C;B=$packages["errors"];A=$packages["math"];C=$packages["unicode/utf8"];$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=B.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=A.$init();$s=2;case 2:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=C.$init();$s=3;case 3:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$pkg.ErrRange=B.New("value out of range");$pkg.ErrSyntax=B.New("invalid syntax");}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["crypto"]=(function(){var $pkg={},$init,A,B,C,O,P,F,G;A=$packages["hash"];B=$packages["io"];C=$packages["strconv"];O=$funcType([],[A.Hash],false);P=$sliceType(O);G=function(a,b){var a,b;if(a>=20){$panic(new $String("crypto: RegisterHash of unknown hash function"));}((a<0||a>=F.$length)?($throwRuntimeError("index out of range"),undefined):F.$array[F.$offset+a]=b);};$pkg.RegisterHash=G;$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=B.$init();$s=2;case 2:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=C.$init();$s=3;case 3:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}F=$makeSlice(P,20);}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["crypto/sha256"]=(function(){var $pkg={},$init,A,B,D,L,M,N,O,P,R,S,I,K,C,E,F,G,J;A=$packages["crypto"];B=$packages["hash"];D=$pkg.digest=$newType(0,$kindStruct,"sha256.digest",true,"crypto/sha256",false,function(h_,x_,nx_,len_,is224_){this.$val=this;if(arguments.length===0){this.h=M.zero();this.x=N.zero();this.nx=0;this.len=new $Uint64(0,0);this.is224=false;return;}this.h=h_;this.x=x_;this.nx=nx_;this.len=len_;this.is224=is224_;});L=$sliceType($Uint32);M=$arrayType($Uint32,8);N=$arrayType($Uint8,64);O=$sliceType($Uint8);P=$arrayType($Uint8,32);R=$arrayType($Uint32,64);S=$ptrType(D);C=function(){A.RegisterHash(4,F);A.RegisterHash(5,E);};D.ptr.prototype.Reset=function(){var a;a=this;if(!a.is224){a.h[0]=1779033703;a.h[1]=3144134277;a.h[2]=1013904242;a.h[3]=2773480762;a.h[4]=1359893119;a.h[5]=2600822924;a.h[6]=528734635;a.h[7]=1541459225;}else{a.h[0]=3238371032;a.h[1]=914150663;a.h[2]=812702999;a.h[3]=4144912697;a.h[4]=4290775857;a.h[5]=1750603025;a.h[6]=1694076839;a.h[7]=3204075428;}a.nx=0;a.len=new $Uint64(0,0);};D.prototype.Reset=function(){return this.$val.Reset();};E=function(){var a;a=new D.ptr(M.zero(),N.zero(),0,new $Uint64(0,0),false);a.Reset();return a;};$pkg.New=E;F=function(){var a;a=new D.ptr(M.zero(),N.zero(),0,new $Uint64(0,0),false);a.is224=true;a.Reset();return a;};$pkg.New224=F;D.ptr.prototype.Size=function(){var a;a=this;if(!a.is224){return 32;}return 28;};D.prototype.Size=function(){return this.$val.Size();};D.ptr.prototype.BlockSize=function(){var a;a=this;return 64;};D.prototype.BlockSize=function(){return this.$val.BlockSize();};D.ptr.prototype.Write=function(a){var a,b,c,d,e,f,g,h,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;e=$f.e;f=$f.f;g=$f.g;h=$f.h;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:b=0;c=$ifaceNil;d=this;b=a.$length;d.len=(e=d.len,f=(new $Uint64(0,b)),new $Uint64(e.$high+f.$high,e.$low+f.$low));if(d.nx>0){$s=1;continue;}$s=2;continue;case 1:g=$copySlice($subslice(new O(d.x),d.nx),a);d.nx=d.nx+(g)>>0;if(d.nx===64){$s=3;continue;}$s=4;continue;case 3:$r=K(d,new O(d.x));$s=5;case 5:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}d.nx=0;case 4:a=$subslice(a,g);case 2:if(a.$length>=64){$s=6;continue;}$s=7;continue;case 6:h=(a.$length&~63)>>0;$r=K(d,$subslice(a,0,h));$s=8;case 8:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}a=$subslice(a,h);case 7:if(a.$length>0){d.nx=$copySlice(new O(d.x),a);}$s=-1;return[b,c];}return;}if($f===undefined){$f={$blk:D.ptr.prototype.Write};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.e=e;$f.f=f;$f.g=g;$f.h=h;$f.$s=$s;$f.$r=$r;return $f;};D.prototype.Write=function(a){return this.$val.Write(a);};D.ptr.prototype.Sum=function(a){var a,b,c,d,e,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;e=$f.e;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:b=this;c=$clone(b,D);d=c.checkSum();$s=1;case 1:if($c){$c=false;d=d.$blk();}if(d&&d.$blk!==undefined){break s;}e=$clone(d,P);if(c.is224){$s=-1;return $appendSlice(a,$subslice(new O(e),0,28));}$s=-1;return $appendSlice(a,new O(e));}return;}if($f===undefined){$f={$blk:D.ptr.prototype.Sum};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.e=e;$f.$s=$s;$f.$r=$r;return $f;};D.prototype.Sum=function(a){return this.$val.Sum(a);};D.ptr.prototype.checkSum=function(){var a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;e=$f.e;f=$f.f;g=$f.g;h=$f.h;i=$f.i;j=$f.j;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;p=$f.p;q=$f.q;r=$f.r;s=$f.s;t=$f.t;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:a=this;b=a.len;c=N.zero();c[0]=128;if((d=$div64(b,new $Uint64(0,64),true),(d.$high<0||(d.$high===0&&d.$low<56)))){$s=1;continue;}$s=2;continue;case 1:f=a.Write($subslice(new O(c),0,$flatten64((e=$div64(b,new $Uint64(0,64),true),new $Uint64(0-e.$high,56-e.$low)))));$s=4;case 4:if($c){$c=false;f=f.$blk();}if(f&&f.$blk!==undefined){break s;}f;$s=3;continue;case 2:h=a.Write($subslice(new O(c),0,$flatten64((g=$div64(b,new $Uint64(0,64),true),new $Uint64(0-g.$high,120-g.$low)))));$s=5;case 5:if($c){$c=false;h=h.$blk();}if(h&&h.$blk!==undefined){break s;}h;case 3:b=$shiftLeft64(b,(3));i=0;while(true){if(!(i<8)){break;}((i<0||i>=c.length)?($throwRuntimeError("index out of range"),undefined):c[i]=(($shiftRightUint64(b,((56-(8*i>>>0)>>>0))).$low<<24>>>24)));i=i+(1)>>>0;}j=a.Write($subslice(new O(c),0,8));$s=6;case 6:if($c){$c=false;j=j.$blk();}if(j&&j.$blk!==undefined){break s;}j;if(!((a.nx===0))){$panic(new $String("d.nx != 0"));}k=new L(a.h);if(a.is224){k=$subslice(new L(a.h),0,7);}l=P.zero();m=k;n=0;while(true){if(!(n<m.$length)){break;}o=n;p=((n<0||n>=m.$length)?($throwRuntimeError("index out of range"),undefined):m.$array[m.$offset+n]);(q=$imul(o,4),((q<0||q>=l.length)?($throwRuntimeError("index out of range"),undefined):l[q]=(((p>>>24>>>0)<<24>>>24))));(r=($imul(o,4))+1>>0,((r<0||r>=l.length)?($throwRuntimeError("index out of range"),undefined):l[r]=(((p>>>16>>>0)<<24>>>24))));(s=($imul(o,4))+2>>0,((s<0||s>=l.length)?($throwRuntimeError("index out of range"),undefined):l[s]=(((p>>>8>>>0)<<24>>>24))));(t=($imul(o,4))+3>>0,((t<0||t>=l.length)?($throwRuntimeError("index out of range"),undefined):l[t]=((p<<24>>>24))));n++;}$s=-1;return l;}return;}if($f===undefined){$f={$blk:D.ptr.prototype.checkSum};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.e=e;$f.f=f;$f.g=g;$f.h=h;$f.i=i;$f.j=j;$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.p=p;$f.q=q;$f.r=r;$f.s=s;$f.t=t;$f.$s=$s;$f.$r=$r;return $f;};D.prototype.checkSum=function(){return this.$val.checkSum();};G=function(a){var a,b,c,d,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:b=new D.ptr(M.zero(),N.zero(),0,new $Uint64(0,0),false);b.Reset();c=b.Write(a);$s=1;case 1:if($c){$c=false;c=c.$blk();}if(c&&c.$blk!==undefined){break s;}c;d=b.checkSum();$s=2;case 2:if($c){$c=false;d=d.$blk();}if(d&&d.$blk!==undefined){break s;}$s=-1;return d;}return;}if($f===undefined){$f={$blk:G};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.$s=$s;$f.$r=$r;return $f;};$pkg.Sum256=G;J=function(a,b){var a,aa,ab,ac,ad,ae,af,ag,ah,ai,aj,ak,al,am,an,ao,ap,aq,ar,as,at,au,av,aw,ax,ay,az,b,ba,bb,bc,bd,be,bf,bg,bh,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z;c=R.zero();d=a.h[0];e=a.h[1];f=a.h[2];g=a.h[3];h=a.h[4];i=a.h[5];j=a.h[6];k=a.h[7];l=d;m=e;n=f;o=g;p=h;q=i;r=j;s=k;while(true){if(!(b.$length>=64)){break;}t=0;while(true){if(!(t<16)){break;}u=$imul(t,4);((t<0||t>=c.length)?($throwRuntimeError("index out of range"),undefined):c[t]=(((((((((((u<0||u>=b.$length)?($throwRuntimeError("index out of range"),undefined):b.$array[b.$offset+u])>>>0))<<24>>>0)|((((v=u+1>>0,((v<0||v>=b.$length)?($throwRuntimeError("index out of range"),undefined):b.$array[b.$offset+v]))>>>0))<<16>>>0))>>>0)|((((w=u+2>>0,((w<0||w>=b.$length)?($throwRuntimeError("index out of range"),undefined):b.$array[b.$offset+w]))>>>0))<<8>>>0))>>>0)|(((x=u+3>>0,((x<0||x>=b.$length)?($throwRuntimeError("index out of range"),undefined):b.$array[b.$offset+x]))>>>0)))>>>0));t=t+(1)>>0;}y=16;while(true){if(!(y<64)){break;}aa=(z=y-2>>0,((z<0||z>=c.length)?($throwRuntimeError("index out of range"),undefined):c[z]));ab=(((((((aa>>>17>>>0)|(aa<<15>>>0))>>>0))^((((aa>>>19>>>0)|(aa<<13>>>0))>>>0)))>>>0)^((aa>>>10>>>0)))>>>0;ad=(ac=y-15>>0,((ac<0||ac>=c.length)?($throwRuntimeError("index out of range"),undefined):c[ac]));ae=(((((((ad>>>7>>>0)|(ad<<25>>>0))>>>0))^((((ad>>>18>>>0)|(ad<<14>>>0))>>>0)))>>>0)^((ad>>>3>>>0)))>>>0;((y<0||y>=c.length)?($throwRuntimeError("index out of range"),undefined):c[y]=(((ab+(af=y-7>>0,((af<0||af>=c.length)?($throwRuntimeError("index out of range"),undefined):c[af]))>>>0)+ae>>>0)+(ag=y-16>>0,((ag<0||ag>=c.length)?($throwRuntimeError("index out of range"),undefined):c[ag]))>>>0));y=y+(1)>>0;}ah=l;ai=m;aj=n;ak=o;al=p;am=q;an=r;ao=s;ap=ah;aq=ai;ar=aj;as=ak;at=al;au=am;av=an;aw=ao;ax=0;while(true){if(!(ax<64)){break;}ay=(((aw+(((((((((at>>>6>>>0)|(at<<26>>>0))>>>0))^((((at>>>11>>>0)|(at<<21>>>0))>>>0)))>>>0)^((((at>>>25>>>0)|(at<<7>>>0))>>>0)))>>>0))>>>0)+((((((at&au)>>>0))^((((~at>>>0)&av)>>>0)))>>>0))>>>0)+((ax<0||ax>=I.$length)?($throwRuntimeError("index out of range"),undefined):I.$array[I.$offset+ax])>>>0)+((ax<0||ax>=c.length)?($throwRuntimeError("index out of range"),undefined):c[ax])>>>0;az=(((((((((ap>>>2>>>0)|(ap<<30>>>0))>>>0))^((((ap>>>13>>>0)|(ap<<19>>>0))>>>0)))>>>0)^((((ap>>>22>>>0)|(ap<<10>>>0))>>>0)))>>>0))+((((((((ap&aq)>>>0))^(((ap&ar)>>>0)))>>>0)^(((aq&ar)>>>0)))>>>0))>>>0;aw=av;av=au;au=at;at=as+ay>>>0;as=ar;ar=aq;aq=ap;ap=ay+az>>>0;ax=ax+(1)>>0;}l=l+(ap)>>>0;m=m+(aq)>>>0;n=n+(ar)>>>0;o=o+(as)>>>0;p=p+(at)>>>0;q=q+(au)>>>0;r=r+(av)>>>0;s=s+(aw)>>>0;b=$subslice(b,64);}ba=l;bb=m;bc=n;bd=o;be=p;bf=q;bg=r;bh=s;a.h[0]=ba;a.h[1]=bb;a.h[2]=bc;a.h[3]=bd;a.h[4]=be;a.h[5]=bf;a.h[6]=bg;a.h[7]=bh;};S.methods=[{prop:"Reset",name:"Reset",pkg:"",typ:$funcType([],[],false)},{prop:"Size",name:"Size",pkg:"",typ:$funcType([],[$Int],false)},{prop:"BlockSize",name:"BlockSize",pkg:"",typ:$funcType([],[$Int],false)},{prop:"Write",name:"Write",pkg:"",typ:$funcType([O],[$Int,$error],false)},{prop:"Sum",name:"Sum",pkg:"",typ:$funcType([O],[O],false)},{prop:"checkSum",name:"checkSum",pkg:"crypto/sha256",typ:$funcType([],[P],false)}];D.init("crypto/sha256",[{prop:"h",name:"h",anonymous:false,exported:false,typ:M,tag:""},{prop:"x",name:"x",anonymous:false,exported:false,typ:N,tag:""},{prop:"nx",name:"nx",anonymous:false,exported:false,typ:$Int,tag:""},{prop:"len",name:"len",anonymous:false,exported:false,typ:$Uint64,tag:""},{prop:"is224",name:"is224",anonymous:false,exported:false,typ:$Bool,tag:""}]);$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=B.$init();$s=2;case 2:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}I=new L([1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298]);K=J;C();}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $packages["."]=(function(){var $pkg={},$init,A,B,O,P,Q,C,D,E,F,G,H,I,J,K,L,M,N;A=$packages["crypto/sha256"];B=$packages["github.com/gopherjs/gopherjs/js"];O=$sliceType($Uint8);P=$arrayType($Uint8,32);Q=$sliceType($Uint);D=function(){var a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;e=$f.e;f=$f.f;g=$f.g;h=$f.h;i=$f.i;j=$f.j;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;p=$f.p;q=$f.q;r=$f.r;s=$f.s;t=$f.t;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:C=$internalize($global.document.getElementById($externalize("addressToTranslate",$String)).value,$String);if((C.charCodeAt(11)===58)&&(C.length===54)&&((C.charCodeAt(12)===113)||(C.charCodeAt(12)===112))){$s=1;continue;}if((C.charCodeAt(0)===49)||(C.charCodeAt(0)===51)&&C.length>25&&C.length<35){$s=2;continue;}if(((C.charCodeAt(0)===113)||(C.charCodeAt(0)===112))&&(C.length===42)){$s=3;continue;}if((C.charCodeAt(7)===58)&&(C.length===50)&&((C.charCodeAt(8)===113)||(C.charCodeAt(8)===112))){$s=4;continue;}if((C.charCodeAt(11)===58)&&(C.length===54)&&((C.charCodeAt(12)===81)||(C.charCodeAt(12)===80))){$s=5;continue;}if((C.charCodeAt(0)===109)||(C.charCodeAt(0)===110)||(C.charCodeAt(0)===50)){$s=6;continue;}if(((C.charCodeAt(0)===67)||(C.charCodeAt(0)===72))&&C.length>25&&C.length<36){$s=7;continue;}$s=8;continue;case 1:a=$substring(C,0,11);b=0;while(true){if(!(b<a.length)){break;}c=$decodeRune(a,b);d=b;e=c[0];if(!((e===(("bitcoincash".charCodeAt(d)>>0))))){E();$s=-1;return;}b+=c[1];}$r=F("bitcoincash",$substring(C,12));$s=10;case 10:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=9;continue;case 2:$r=J(C);$s=11;case 11:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=9;continue;case 3:$r=F("bitcoincash",C);$s=12;case 12:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=9;continue;case 4:f=$substring(C,0,7);g=0;while(true){if(!(g<f.length)){break;}h=$decodeRune(f,g);i=g;j=h[0];if(!((j===(("bchtest".charCodeAt(i)>>0))))){E();$s=-1;return;}g+=h[1];}$r=F("bchtest",$substring(C,8));$s=13;case 13:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=9;continue;case 5:k="";l=C;m=0;while(true){if(!(m<l.length)){break;}n=$decodeRune(l,m);o=n[0];k=k+($encodeRune((32|(o))));m+=n[1];}p=$substring(k,0,11);q=0;while(true){if(!(q<p.length)){break;}r=$decodeRune(p,q);s=q;t=r[0];if(!((t===(("bitcoincash".charCodeAt(s)>>0))))){E();$s=-1;return;}q+=r[1];}$r=J(k);$s=14;case 14:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=9;continue;case 6:$r=J(C);$s=15;case 15:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=9;continue;case 7:$r=J(C);$s=16;case 16:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=9;continue;case 8:E();case 9:$s=-1;return;}return;}if($f===undefined){$f={$blk:D};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.e=e;$f.f=f;$f.g=g;$f.h=h;$f.i=i;$f.j=j;$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.p=p;$f.q=q;$f.r=r;$f.s=s;$f.t=t;$f.$s=$s;$f.$r=$r;return $f;};E=function(){$global.document.getElementById($externalize("resultAddress",$String)).value=$externalize("",$String);$global.document.getElementById($externalize("resultAddressBlock",$String)).style.display=$externalize("none",$String);};F=function(a,b){var a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;e=$f.e;f=$f.f;g=$f.g;h=$f.h;i=$f.i;j=$f.j;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;p=$f.p;q=$f.q;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:c=O.nil;d=b;e=0;while(true){if(!(e<d.length)){break;}f=$decodeRune(d,e);g=f[0];h=$pkg.CHARSET;i=0;while(true){if(!(i<h.length)){break;}j=$decodeRune(h,i);k=i;l=j[0];if(l===g){c=$append(c,(((k<<24>>>24))));}i+=j[1];}e+=f[1];}m=new O([]);n=true;if(a==="bitcoincash"){m=new O([2,9,20,3,15,9,14,3,1,19,8,0]);}else if(a==="bchtest"){m=new O([2,3,8,20,5,19,20,0]);n=false;}else{E();$s=-1;return;}if(!((o=L($appendSlice(m,c)),(o.$high===0&&o.$low===0)))){E();$s=-1;return;}p=M($subslice(c,0,(c.$length-8>>0)),5,8,false);if(p.$length===0){E();$s=-1;return;}q=(0>=p.$length?($throwRuntimeError("index out of range"),undefined):p.$array[p.$offset+0])>>>3<<24>>>24;$r=G(q,$subslice(p,1,21),n);$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=-1;return;}return;}if($f===undefined){$f={$blk:F};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.e=e;$f.f=f;$f.g=g;$f.h=h;$f.i=i;$f.j=j;$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.p=p;$f.q=q;$f.$s=$s;$f.$r=$r;return $f;};G=function(a,b,c){var a,b,c,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:if(c){$s=1;continue;}$s=2;continue;case 1:if(a===0){$s=4;continue;}$s=5;continue;case 4:$r=H(b,0);$s=7;case 7:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=6;continue;case 5:$r=H(b,5);$s=8;case 8:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}case 6:$s=3;continue;case 2:if(a===0){$s=9;continue;}$s=10;continue;case 9:$r=H(b,111);$s=12;case 12:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$s=11;continue;case 10:$r=H(b,196);$s=13;case 13:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}case 11:case 3:$s=-1;return;}return;}if($f===undefined){$f={$blk:G};}$f.a=a;$f.b=b;$f.c=c;$f.$s=$s;$f.$r=$r;return $f;};H=function(a,b){var a,b,c,d,e,f,g,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;e=$f.e;f=$f.f;g=$f.g;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:c=$makeSlice(O,0,((1+a.$length>>0)+4>>0));c=$append(c,b);c=$appendSlice(c,a);d=A.Sum256(c);$s=1;case 1:if($c){$c=false;d=d.$blk();}if(d&&d.$blk!==undefined){break s;}e=$clone(d,P);f=A.Sum256(new O(e));$s=2;case 2:if($c){$c=false;f=f.$blk();}if(f&&f.$blk!==undefined){break s;}g=$clone(f,P);c=$appendSlice(c,$subslice(new O(g),0,4));$global.document.getElementById($externalize("resultAddress",$String)).value=$externalize(I(c),$String);$global.document.getElementById($externalize("resultAddressBlock",$String)).style.display=$externalize("block",$String);$s=-1;return;}return;}if($f===undefined){$f={$blk:H};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.e=e;$f.f=f;$f.g=g;$f.$s=$s;$f.$r=$r;return $f;};$pkg.CheckEncodeBase58=H;I=function(a){var a,b,c,d,e,f,g,h,i,j,k,l,m;b=0;c="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";d=new O([0]);e=0;while(true){if(!(e<a.$length)){break;}f=(new $Uint64(0,((e<0||e>=a.$length)?($throwRuntimeError("index out of range"),undefined):a.$array[a.$offset+e])));g=0;while(true){if(!(g<d.$length)){break;}f=(h=$shiftLeft64((new $Uint64(0,((g<0||g>=d.$length)?($throwRuntimeError("index out of range"),undefined):d.$array[d.$offset+g]))),8),new $Uint64(f.$high+h.$high,f.$low+h.$low));((g<0||g>=d.$length)?($throwRuntimeError("index out of range"),undefined):d.$array[d.$offset+g]=(($div64(f,new $Uint64(0,58),true).$low<<24>>>24)));f=$div64(f,new $Uint64(0,58),false);g=g+(1)>>0;}while(true){if(!((f.$high>0||(f.$high===0&&f.$low>0)))){break;}d=$append(d,(($div64(f,new $Uint64(0,58),true).$low<<24>>>24)));f=$div64(f,new $Uint64(0,58),false);}e=e+(1)>>0;}i=a;j=0;while(true){if(!(j<i.$length)){break;}k=((j<0||j>=i.$length)?($throwRuntimeError("index out of range"),undefined):i.$array[i.$offset+j]);if(!((k===0))){break;}d=$append(d,((b<<24>>>24)));j++;}l=new O([]);m=d.$length-1>>0;while(true){if(!(m>=0)){break;}l=$append(l,(c.charCodeAt(((m<0||m>=d.$length)?($throwRuntimeError("index out of range"),undefined):d.$array[d.$offset+m]))));m=m-(1)>>0;}return($bytesToString(l));};$pkg.EncodeBase58Simplified=I;J=function(a){var a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,$s,$r;$s=0;var $f,$c=false;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;a=$f.a;b=$f.b;c=$f.c;d=$f.d;e=$f.e;f=$f.f;g=$f.g;h=$f.h;i=$f.i;j=$f.j;k=$f.k;l=$f.l;m=$f.m;n=$f.n;o=$f.o;p=$f.p;q=$f.q;r=$f.r;s=$f.s;t=$f.t;u=$f.u;v=$f.v;w=$f.w;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:b=$makeMap($Uint8.keyFor,[{k:86,v:28},{k:100,v:36},{k:118,v:53},{k:50,v:1},{k:54,v:5},{k:57,v:8},{k:71,v:15},{k:74,v:17},{k:66,v:10},{k:77,v:20},{k:99,v:35},{k:75,v:18},{k:111,v:46},{k:112,v:47},{k:117,v:52},{k:52,v:3},{k:83,v:25},{k:113,v:48},{k:67,v:11},{k:68,v:12},{k:98,v:34},{k:104,v:40},{k:121,v:56},{k:85,v:27},{k:122,v:57},{k:109,v:44},{k:115,v:50},{k:56,v:7},{k:72,v:16},{k:90,v:32},{k:97,v:33},{k:102,v:38},{k:76,v:19},{k:84,v:26},{k:107,v:43},{k:78,v:21},{k:81,v:23},{k:88,v:30},{k:101,v:37},{k:65,v:9},{k:51,v:2},{k:103,v:39},{k:106,v:42},{k:116,v:51},{k:49,v:0},{k:53,v:4},{k:82,v:24},{k:105,v:41},{k:114,v:49},{k:70,v:14},{k:55,v:6},{k:69,v:13},{k:87,v:29},{k:89,v:31},{k:120,v:55},{k:80,v:22},{k:110,v:45},{k:119,v:54}]);c=new O([0]);d=0;while(true){if(!(d<a.length)){break;}f=(e=b[$Uint8.keyFor(a.charCodeAt(d))],e!==undefined?e.v:0);if((f===0)&&!((a.charCodeAt(d)===49))){E();$s=-1;return;}g=(new $Uint64(0,f));h=0;while(true){if(!(h<c.$length)){break;}g=(i=$mul64((new $Uint64(0,((h<0||h>=c.$length)?($throwRuntimeError("index out of range"),undefined):c.$array[c.$offset+h]))),new $Uint64(0,58)),new $Uint64(g.$high+i.$high,g.$low+i.$low));((h<0||h>=c.$length)?($throwRuntimeError("index out of range"),undefined):c.$array[c.$offset+h]=((new $Uint64(g.$high&0,(g.$low&255)>>>0).$low<<24>>>24)));g=$shiftRightUint64(g,8);h=h+(1)>>0;}while(true){if(!((g.$high>0||(g.$high===0&&g.$low>0)))){break;}c=$append(c,((new $Uint64(g.$high&0,(g.$low&255)>>>0).$low<<24>>>24)));g=$shiftRightUint64(g,8);}d=d+(1)>>0;}j=0;j=0;while(true){if(!(j<a.length)){break;}if(!((a.charCodeAt(j)===49))){break;}j=j+(1)>>0;}k=$makeSlice(O,(j+c.$length>>0));$copySlice($subslice(k,0,c.$length),c);if(k.$length<5){E();$s=-1;return;}l=new O([]);m=k.$length-1>>0;while(true){if(!(m>=0)){break;}l=$append(l,((m<0||m>=k.$length)?($throwRuntimeError("index out of range"),undefined):k.$array[k.$offset+m]));m=m-(1)>>0;}n=(0>=l.$length?($throwRuntimeError("index out of range"),undefined):l.$array[l.$offset+0]);o=A.Sum256($subslice(l,0,(l.$length-4>>0)));$s=1;case 1:if($c){$c=false;o=o.$blk();}if(o&&o.$blk!==undefined){break s;}p=$clone(o,P);q=A.Sum256(new O(p));$s=2;case 2:if($c){$c=false;q=q.$blk();}if(q&&q.$blk!==undefined){break s;}r=$clone(q,P);if(!((r[0]===(s=l.$length-4>>0,((s<0||s>=l.$length)?($throwRuntimeError("index out of range"),undefined):l.$array[l.$offset+s]))))||!((r[1]===(t=l.$length-3>>0,((t<0||t>=l.$length)?($throwRuntimeError("index out of range"),undefined):l.$array[l.$offset+t]))))||!((r[2]===(u=l.$length-2>>0,((u<0||u>=l.$length)?($throwRuntimeError("index out of range"),undefined):l.$array[l.$offset+u]))))||!((r[3]===(v=l.$length-1>>0,((v<0||v>=l.$length)?($throwRuntimeError("index out of range"),undefined):l.$array[l.$offset+v]))))){E();$s=-1;return;}w=$subslice(l,1,(l.$length-4>>0));if(n===0){K(0,w,true);}else if(n===5){K(1,w,true);}else if(n===111){K(0,w,false);}else if(n===196){K(1,w,false);}else if(n===28){K(0,w,true);}else if(n===40){K(1,w,true);}else{E();}$s=-1;return;}return;}if($f===undefined){$f={$blk:J};}$f.a=a;$f.b=b;$f.c=c;$f.d=d;$f.e=e;$f.f=f;$f.g=g;$f.h=h;$f.i=i;$f.j=j;$f.k=k;$f.l=l;$f.m=m;$f.n=n;$f.o=o;$f.p=p;$f.q=q;$f.r=r;$f.s=s;$f.t=t;$f.u=u;$f.v=v;$f.w=w;$f.$s=$s;$f.$r=$r;return $f;};K=function(a,b,c){var a,b,c,d,e,f,g,h,i,j,k,l,m,n,o;d=N(a,b);if(d.$length===0){E();return;}e=new O([]);if(c){e=new O([2,9,20,3,15,9,14,3,1,19,8,0]);}else{e=new O([2,3,8,20,5,19,20,0]);}f=$appendSlice(e,d);f=$appendSlice(f,new O([0,0,0,0,0,0,0,0]));g=L(f);h=$makeSlice(O,8);i=0;while(true){if(!(i<8)){break;}((i<0||i>=h.$length)?($throwRuntimeError("index out of range"),undefined):h.$array[h.$offset+i]=(((j=$shiftRightUint64(g,((($imul(5,((7-i>>0))))>>>0))),new $Uint64(j.$high&0,(j.$low&31)>>>0)).$low<<24>>>24)));i=i+(1)>>0;}k=$appendSlice(d,h);l="";if(c){l="bitcoincash:";}else{l="bchtest:";}m=k;n=0;while(true){if(!(n<m.$length)){break;}o=((n<0||n>=m.$length)?($throwRuntimeError("index out of range"),undefined):m.$array[m.$offset+n]);l=l+(($encodeRune($pkg.CHARSET.charCodeAt(o))));n++;}if((l.length===54)||(l.length===50)){$global.document.getElementById($externalize("resultAddress",$String)).value=$externalize(l,$String);$global.document.getElementById($externalize("resultAddressBlock",$String)).style.display=$externalize("block",$String);}else{E();}};L=function(a){var a,b,c,d,e,f,g,h,i,j,k,l,m;b=new $Uint64(0,1);c=a;d=0;while(true){if(!(d<c.$length)){break;}e=((d<0||d>=c.$length)?($throwRuntimeError("index out of range"),undefined):c.$array[c.$offset+d]);f=(($shiftRightUint64(b,35).$low<<24>>>24));b=(g=$shiftLeft64((new $Uint64(b.$high&7,(b.$low&4294967295)>>>0)),5),h=(new $Uint64(0,e)),new $Uint64(g.$high^h.$high,(g.$low^h.$low)>>>0));if(((f&1)>>>0)>0){b=(i=new $Uint64(152,4072443489),new $Uint64(b.$high^i.$high,(b.$low^i.$low)>>>0));}if(((f&2)>>>0)>0){b=(j=new $Uint64(121,3077413346),new $Uint64(b.$high^j.$high,(b.$low^j.$low)>>>0));}if(((f&4)>>>0)>0){b=(k=new $Uint64(243,1046459332),new $Uint64(b.$high^k.$high,(b.$low^k.$low)>>>0));}if(((f&8)>>>0)>0){b=(l=new $Uint64(174,783016616),new $Uint64(b.$high^l.$high,(b.$low^l.$low)>>>0));}if(((f&16)>>>0)>0){b=(m=new $Uint64(30,1329849456),new $Uint64(b.$high^m.$high,(b.$low^m.$low)>>>0));}d++;}return new $Uint64(b.$high^0,(b.$low^1)>>>0);};$pkg.PolyMod=L;M=function(a,b,c,d){var a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z;e=Q.nil;f=a;g=0;while(true){if(!(g<f.$length)){break;}h=((g<0||g>=f.$length)?($throwRuntimeError("index out of range"),undefined):f.$array[f.$offset+g]);e=$append(e,((h>>>0)));g++;}i=0;j=0;k=Q.nil;m=(((((l=c,l<32?(1<<l):0)>>>0))-1>>>0));o=(((((n=(((b+c>>>0)-1>>>0)),n<32?(1<<n):0)>>>0))-1>>>0));p=e;q=0;while(true){if(!(q<p.$length)){break;}r=((q<0||q>=p.$length)?($throwRuntimeError("index out of range"),undefined):p.$array[p.$offset+q]);i=(((((((s=b,s<32?(i<<s):0)>>>0))|r)>>>0))&o)>>>0;j=j+(b)>>>0;while(true){if(!(j>=c)){break;}j=j-(c)>>>0;k=$append(k,((((t=j,t<32?(i>>>t):0)>>>0))&m)>>>0);}q++;}if(d){if(j>0){k=$append(k,((((v=((c-j>>>0)),v<32?(i<<v):0)>>>0))&m)>>>0);}}else if(j>=b||!((((((((u=((c-j>>>0)),u<32?(i<<u):0)>>>0))&m)>>>0))===0))){return new O([]);}w=O.nil;x=k;y=0;while(true){if(!(y<x.$length)){break;}z=((y<0||y>=x.$length)?($throwRuntimeError("index out of range"),undefined):x.$array[x.$offset+y]);w=$append(w,((z<<24>>>24)));y++;}return w;};N=function(a,b){var a,b,c,d,e,f,g,h,i,j,k,l;c=(a)<<3>>>0;e=(d=((((b.$length>>>0))-20>>>0))/4,(d===d&&d!==1/0&&d!==-1/0)?d>>>0:$throwRuntimeError("integer divide by zero"));if(!(((f=((b.$length-20>>0))%4,f===f?f:$throwRuntimeError("integer divide by zero"))===0))){return new O([]);}if(e<0||e>8){return new O([]);}c=(c|(e))>>>0;g=O.nil;h=b;i=0;while(true){if(!(i<h.$length)){break;}j=((i<0||i>=h.$length)?($throwRuntimeError("index out of range"),undefined):h.$array[h.$offset+i]);g=$append(g,(j));i++;}k=$appendSlice(new O([((c<<24>>>24))]),g);l=M(k,8,5,true);return l;};$init=function(){$pkg.$init=function(){};var $f,$c=false,$s=0,$r;if(this!==undefined&&this.$blk!==undefined){$f=this;$c=true;$s=$f.$s;$r=$f.$r;}s:while(true){switch($s){case 0:$r=A.$init();$s=1;case 1:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$r=B.$init();$s=2;case 2:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}C="";$pkg.CHARSET="qpzry9x8gf2tvdw0s3jn54khce6mua7l";if($pkg===$mainPkg){$s=3;continue;}$s=4;continue;case 3:$r=D();$s=5;case 5:if($c){$c=false;$r=$r.$blk();}if($r&&$r.$blk!==undefined){break s;}$mainFinished=true;case 4:}return;}if($f===undefined){$f={$blk:$init};}$f.$s=$s;$f.$r=$r;return $f;};$pkg.$init=$init;return $pkg;})();
-  $synthesizeMethods();
-  var $mainPkg = $packages["."];
-  $packages["runtime"].$init();
-  $go($mainPkg.$init, []);
-  $flushConsole();
-
-  }).call(this);
+		// Sorry! I think uppercase testnet addresses won't be used!
+	} else if (input[0] == 'm' || input[0] == 'n' || input[0] == '2') {
+		parseAndConvertOldAddress(input)
+	} else if ((input[0] == 'C' || input[0] == 'H') && input.length > 25 && input.length < 36) {
+		parseAndConvertOldAddress(input)
+	} else {
+		cleanResultAddress()
+	}
 }
+
+function parseAndConvertCashAddress(prefix, payloadString) {
+	// PolyMod(append(ExpandPrefix("bitcoincash"), payload...)) != 0
+	//payload := []byte(payloadString)
+	var payloadUnparsed = []
+  var CHARSET_MAP = {"q": 0, "p": 1, "z": 2, "r": 3, "y": 4, "9": 5, "x": 6, "8": 7, "g": 8, "f": 9, "2": 10, "t": 11,
+  "v": 12, "d": 13, "w": 14, "0": 15, "s": 16, "3": 17, "j": 18, "n": 19, "5": 20, "4": 21, "k": 22, "h": 23,
+  "c": 24, "e": 25, "6": 26, "m": 27, "u": 28, "a": 29, "7": 30, "l": 31}
+  for (var i = 0; i < payloadString.length; i++) {
+    payloadUnparsed.push(CHARSET_MAP[payloadString[i]])
+  }
+	var expandPrefix = []
+	// func ExpandPrefix(prefix string) []byte {
+	// ret := make(data, len(prefix) + 1)
+	// for i := 0; i < len(prefix); i++ {
+	//	ret[i] = byte(prefix[i]) & 0x1f;
+	// }
+	// ret[len(prefix)] = 0;
+	// return ret;
+	// }
+	// https://play.golang.org/p/NMR2ImCmdpZ
+	var netType = true
+	if (prefix == "bitcoincash") {
+		expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0]
+	} else if (prefix == "bchtest") {
+		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
+		netType = false
+	} else {
+		cleanResultAddress()
+		return
+	}
+  var polymodInput = expandPrefix.concat(payloadUnparsed)
+  var polymodResult = polyMod(polymodInput)
+  for (var i = 0; i < polymodResult.length; i++) {
+    if (polymodResult[i] != 0) {
+      //console.log("checksum doesn't match")
+      cleanResultAddress()
+      return
+    }
+  }
+	// Also drop the checsum
+	// TODO: Fix the range
+	var payload = convertBits(payloadUnparsed.slice(0,-8), 5, 8, false)
+	if (payload.length == 0) {
+		cleanResultAddress()
+		return
+	}
+	var addressType = payload[0] >> 3 // 0 or 1
+	craftOldAddress(addressType, payload.slice(1,21), netType)
+}
+
+function craftOldAddress(kind, addressHash, netType) {
+	if (netType) {
+		if (kind == 0) {
+			CheckEncodeBase58(addressHash, 0x00)
+		} else {
+			CheckEncodeBase58(addressHash, 0x05)
+		}
+	} else {
+		if (kind == 0) {
+			CheckEncodeBase58(addressHash, 0x6f)
+		} else {
+			CheckEncodeBase58(addressHash, 0xc4)
+		}
+	}
+}
+
+function CheckEncodeBase58(input, version) {
+  var b = []
+	// b := make([]byte, 0, 1+len(input)+4)
+	b.push(version)
+	b = b.concat(input)
+	var h = sha256(Uint8Array.from(b))
+	var h2 = sha256(h)
+	//	fmt.Println("%x %x %v", checksum, []byte(h2[:4]), len(checksum))
+  b = b.concat(Array.from(h2).slice(0,4))
+	//fmt.Println("%x", b[len(b)-4:])
+	//println(js.Global.Get("bs58").Call("encode", b).String())
+  document.getElementById('resultAddress').value = EncodeBase58Simplified(b)
+  document.getElementById('resultAddressBlock').style.display = 'block'
+	//println(EncodeBase58(b))
+}
+
+function EncodeBase58Simplified(b) {
+	// var bigRadix = big.NewInt(58)
+	// var bigZero = big.NewInt(0)
+	var alphabetIdx0 = 0
+	var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	var digits = [0]
+  for (var i = 0; i < b.length; i++) {
+		for (var j = 0, carry = b[i]; j < digits.length; j++) {
+			carry += digits[j] << 8
+			digits[j] = carry % 58
+			carry = (carry / 58) | 0
+		}
+		while (carry > 0) {
+      digits.push(carry%58)
+			carry = (carry / 58) | 0
+		}
+	}
+	var answer = ""
+	// leading zero bytes
+  for (var i = 0; i < b.length; i++) {
+    if (b[i] != 0) {
+      break
+    }
+    //digits.push(alphabetIdx0)
+    answer = answer.concat("1")
+  }
+	// reverse
+	for (var t = digits.length - 1; t >= 0; t--) {
+    // console.log(alphabet[digits[t]])
+    answer = answer.concat(alphabet[digits[t]])
+    //alert(alphabet[digits[t]])
+    //alert(digits[t])
+	}
+	return answer
+}
+
+function parseAndConvertOldAddress(oldAddress) {
+	// var ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	// ALPHABET_MAP := make(map[rune]uint8)
+	// for i, e := range ALPHABET {
+	// 	ALPHABET_MAP[e] = uint8(i)
+	// }
+	// fmt.Println(ALPHABET_MAP)
+	var ALPHABET_MAP = {86: 28, 100: 36, 118: 53, 50: 1, 54: 5, 57: 8, 71: 15,
+		74: 17, 66: 10, 77: 20, 99: 35, 75: 18, 111: 46, 112: 47, 117: 52, 52: 3, 83: 25, 113: 48,
+		67: 11, 68: 12, 98: 34, 104: 40, 121: 56, 85: 27, 122: 57, 109: 44, 115: 50, 56: 7, 72: 16,
+		90: 32, 97: 33, 102: 38, 76: 19, 84: 26, 107: 43, 78: 21, 81: 23, 88: 30, 101: 37, 65: 9,
+		51: 2, 103: 39, 106: 42, 116: 51, 49: 0, 53: 4, 82: 24, 105: 41, 114: 49, 70: 14, 55: 6,
+		69: 13, 87: 29, 89: 31, 120: 55, 80: 22, 110: 45, 119: 54}
+
+	var bytes = [0]
+	for (var i = 0; i < oldAddress.length; i++) {
+		var value = ALPHABET_MAP[oldAddress.charCodeAt(i)]
+//    if (value == undefined) {
+//      console.log("undefined value")
+//    }
+		if (value == 0 && oldAddress[i] != '1') {
+//      console.log("kndw")
+			cleanResultAddress()
+			return
+		}
+		var carry = value
+		for (var j = 0; j < bytes.length; j++) {
+			carry += bytes[j] * 58
+			bytes[j] = carry & 0xff
+			carry = carry >> 8
+		}
+		while (carry > 0) {
+			bytes.push(carry&0xff)
+			carry = carry >> 8
+		}
+	}
+// console.log(bytes.length)
+	var numZeros = 0
+	for (numZeros = 0; numZeros < oldAddress.length; numZeros++) {
+		if (oldAddress[numZeros] != '1') {
+			break
+		}
+	}
+  var val = []
+  for (var i = 0; i < numZeros + bytes.length; i++) {
+    val.push(0)
+  }
+  for (var i = 0; i < bytes.length; i++) {
+    val[i] = bytes[i]
+  }
+
+	if (val.length < 5) {
+		cleanResultAddress()
+		return
+	}
+//  console.log("cp1")
+	var answer = new Array()
+	for (var t = val.length - 1; t >= 0; t--) {
+		answer.push(val[t])
+	}
+	var version = answer[0]
+	var h = sha256(Uint8Array.from(answer.slice(0,-4)))
+	var h2 = sha256(h)
+	if (h2[0] != answer[answer.length-4] || h2[1] != answer[answer.length-3] || h2[2] != answer[answer.length-2] || h2[3] != answer[answer.length-1]) {
+//    console.log("checksum doesn't match!")
+		cleanResultAddress()
+		return
+	}
+	var payload = answer.slice(1, answer.length-4)
+	if (version == 0x00) {
+		craftCashAddress(0, payload, true)
+	} else if (version == 0x05) {
+		craftCashAddress(1, payload, true)
+	} else if (version == 0x6f) {
+		craftCashAddress(0, payload, false)
+	} else if (version == 0xc4) {
+		craftCashAddress(1, payload, false)
+	} else if (version == 0x1c) {
+		craftCashAddress(0, payload, true)
+	} else if (version == 0x28) {
+		craftCashAddress(1, payload, true)
+	} else {
+		cleanResultAddress()
+	}
+}
+
+function packCashAddressData(addressType, addressHash) {
+	// Pack addr data with version byte.
+	var versionByte = addressType << 3
+	var encodedSize = (addressHash.length - 20) / 4
+	if ((addressHash.length-20)%4 != 0) {
+		return []
+	}
+	if (encodedSize < 0 || encodedSize > 8) {
+		return []
+	}
+	versionByte |= encodedSize
+	var addressHashUint = []
+  for (var i = 0; i < addressHash.length; i++) {
+    addressHashUint.push(addressHash[i])
+  }
+  var data = [versionByte].concat(addressHashUint)
+	return convertBits(data, 8, 5, true)
+}
+
+function convertBits(data, fromBits, tobits, pad) {
+	// General power-of-2 base conversion.
+	var acc = 0
+	var bits = 0
+	var ret = []
+	var maxv = (1 << tobits) - 1
+	var maxAcc = (1 << (fromBits + tobits - 1)) - 1
+  for (var i = 0; i < data.length; i++) {
+    var value = data[i]
+    if (value < 0 || (value >> fromBits) !== 0) {
+      return null;
+    }
+    acc = ((acc << fromBits) | value) & maxAcc
+    bits += fromBits
+    while (bits >= tobits) {
+      bits -= tobits
+      ret.push((acc>>bits)&maxv)
+    }
+  }
+	if (pad) {
+		if (bits > 0) {
+      ret.push((acc<<(tobits-bits))&maxv)
+		}
+	} else if (bits >= fromBits || ((acc<<(tobits-bits))&maxv) != 0) {
+		return []
+	}
+	return ret
+}
+
+function craftCashAddress(kind, addressHash, netType) {
+	var payload = packCashAddressData(kind, addressHash)
+	//checksum := CreateChecksum(prefix, payload)
+	if (payload.length == 0) {
+		cleanResultAddress()
+		return
+	}
+//  console.log(payload.length) // 34
+//  console.log("cp2")
+	// func ExpandPrefix(prefix string) []byte {
+	// ret := make(data, len(prefix) + 1)
+	// for i := 0; i < len(prefix); i++ {
+	//	ret[i] = byte(prefix[i]) & 0x1f;
+	// }
+	// ret[len(prefix)] = 0;
+	// return ret;
+	// }
+	// https://play.golang.org/p/NMR2ImCmdpZ
+	var expandPrefix = []
+	if (netType == true) {
+		expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0]
+	} else {
+		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
+	}
+  var enc = expandPrefix.concat(payload)
+	// Append 8 zeroes.
+	/*enc = enc.concat([0, 0, 0, 0, 0, 0, 0, 0])
+	// Determine what to XOR into those 8 zeroes.
+	var mod = PolyMod(enc)
+	var retChecksum = [0,0,0,0,0,0,0,0]
+	for i := 0; i < 8; i++ {
+		// Convert the 5-bit groups in mod to checksum values.
+		retChecksum[i] = byte((mod >> uint(5*(7-i))) & 0x1f)
+	}*/
+  //var toMod = getAsBitArray(enc.concat([0,0,0,0,0,0,0,0]))
+//  console.log("ok")
+  var mod = polyMod(enc.concat([0,0,0,0,0,0,0,0]))
+  var retChecksum = []
+  for (var i = 0; i < 8; i++) {
+    // Convert the 5-bit groups in mod to checksum values.
+    // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
+    retChecksum[i] = getAs5bitArray((rShift(mod, 5*(7-i))).slice(-5))[0]
+//    console.log((rShift(mod, 5*(7-i))).slice(-5))
+  }
+//  console.log(mod/*.slice(-5)*/)
+	var combined = payload.concat(retChecksum)
+//  console.log(polyMod(combined))
+	var ret = ""
+	if (netType == true) {
+		ret = "bitcoincash:"
+	} else {
+		ret = "bchtest:"
+	}
+  for (var i = 0; i < combined.length; i++) {
+    ret = ret.concat(CHARSET[combined[i]])
+  }
+	if (ret.length == 54 || ret.length == 50) {
+    document.getElementById('resultAddress').value = ret
+    document.getElementById('resultAddressBlock').style.display = 'block'
+	} else {
+		cleanResultAddress()
+	}
+}
+
+function cleanResultAddress() {
+  document.getElementById('resultAddress').value = ""
+  document.getElementById('resultAddressBlock').style.display = "none"
+}
+
+!function(t,e){var i={};!function(t){"use strict";function e(t,e,i,r,n){for(var h,f,a,o,u,d,p,c,b,g,l,y,v;n>=64;){for(h=e[0],f=e[1],a=e[2],o=e[3],u=e[4],d=e[5],p=e[6],c=e[7],g=0;g<16;g++)l=r+4*g,t[g]=(255&i[l])<<24|(255&i[l+1])<<16|(255&i[l+2])<<8|255&i[l+3];for(g=16;g<64;g++)b=t[g-2],y=(b>>>17|b<<15)^(b>>>19|b<<13)^b>>>10,b=t[g-15],v=(b>>>7|b<<25)^(b>>>18|b<<14)^b>>>3,t[g]=(y+t[g-7]|0)+(v+t[g-16]|0);for(g=0;g<64;g++)y=(((u>>>6|u<<26)^(u>>>11|u<<21)^(u>>>25|u<<7))+(u&d^~u&p)|0)+(c+(s[g]+t[g]|0)|0)|0,v=((h>>>2|h<<30)^(h>>>13|h<<19)^(h>>>22|h<<10))+(h&f^h&a^f&a)|0,c=p,p=d,d=u,u=o+y|0,o=a,a=f,f=h,h=y+v|0;e[0]+=h,e[1]+=f,e[2]+=a,e[3]+=o,e[4]+=u,e[5]+=d,e[6]+=p,e[7]+=c,r+=64,n-=64}return r}function i(t){var e=(new r).update(t),i=e.digest();return e.clean(),i}t.__esModule=!0,t.digestLength=32,t.blockSize=64;var s=new Uint32Array([1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298]);var r=function(){function i(){this.digestLength=t.digestLength,this.blockSize=t.blockSize,this.state=new Int32Array(8),this.temp=new Int32Array(64),this.buffer=new Uint8Array(128),this.bufferLength=0,this.bytesHashed=0,this.finished=!1,this.reset()}return i.prototype.reset=function(){return this.state[0]=1779033703,this.state[1]=3144134277,this.state[2]=1013904242,this.state[3]=2773480762,this.state[4]=1359893119,this.state[5]=2600822924,this.state[6]=528734635,this.state[7]=1541459225,this.bufferLength=0,this.bytesHashed=0,this.finished=!1,this},i.prototype.clean=function(){for(t=0;t<this.buffer.length;t++)this.buffer[t]=0;for(var t=0;t<this.temp.length;t++)this.temp[t]=0;this.reset()},i.prototype.update=function(t,i){if(void 0===i&&(i=t.length),this.finished)throw new Error("SHA256: can't update because hash was finished.");var s=0;if(this.bytesHashed+=i,this.bufferLength>0){for(;this.bufferLength<64&&i>0;)this.buffer[this.bufferLength++]=t[s++],i--;64===this.bufferLength&&(e(this.temp,this.state,this.buffer,0,64),this.bufferLength=0)}for(i>=64&&(s=e(this.temp,this.state,t,s,i),i%=64);i>0;)this.buffer[this.bufferLength++]=t[s++],i--;return this},i.prototype.finish=function(t){if(!this.finished){var i=this.bytesHashed,s=this.bufferLength,r=i/536870912|0,n=i<<3,h=i%64<56?64:128;this.buffer[s]=128;for(f=s+1;f<h-8;f++)this.buffer[f]=0;this.buffer[h-8]=r>>>24&255,this.buffer[h-7]=r>>>16&255,this.buffer[h-6]=r>>>8&255,this.buffer[h-5]=r>>>0&255,this.buffer[h-4]=n>>>24&255,this.buffer[h-3]=n>>>16&255,this.buffer[h-2]=n>>>8&255,this.buffer[h-1]=n>>>0&255,e(this.temp,this.state,this.buffer,0,h),this.finished=!0}for(var f=0;f<8;f++)t[4*f+0]=this.state[f]>>>24&255,t[4*f+1]=this.state[f]>>>16&255,t[4*f+2]=this.state[f]>>>8&255,t[4*f+3]=this.state[f]>>>0&255;return this},i.prototype.digest=function(){var t=new Uint8Array(this.digestLength);return this.finish(t),t},i.prototype._saveState=function(t){for(var e=0;e<this.state.length;e++)t[e]=this.state[e]},i.prototype._restoreState=function(t,e){for(var i=0;i<this.state.length;i++)this.state[i]=t[i];this.bytesHashed=e,this.finished=!1,this.bufferLength=0},i}();t.Hash=r;var n=function(){function t(t){this.inner=new r,this.outer=new r,this.blockSize=this.inner.blockSize,this.digestLength=this.inner.digestLength;var e=new Uint8Array(this.blockSize);if(t.length>this.blockSize)(new r).update(t).finish(e).clean();else for(i=0;i<t.length;i++)e[i]=t[i];for(i=0;i<e.length;i++)e[i]^=54;this.inner.update(e);for(i=0;i<e.length;i++)e[i]^=106;this.outer.update(e),this.istate=new Uint32Array(8),this.ostate=new Uint32Array(8),this.inner._saveState(this.istate),this.outer._saveState(this.ostate);for(var i=0;i<e.length;i++)e[i]=0}return t.prototype.reset=function(){return this.inner._restoreState(this.istate,this.inner.blockSize),this.outer._restoreState(this.ostate,this.outer.blockSize),this},t.prototype.clean=function(){for(var t=0;t<this.istate.length;t++)this.ostate[t]=this.istate[t]=0;this.inner.clean(),this.outer.clean()},t.prototype.update=function(t){return this.inner.update(t),this},t.prototype.finish=function(t){return this.outer.finished?this.outer.finish(t):(this.inner.finish(t),this.outer.update(t,this.digestLength).finish(t)),this},t.prototype.digest=function(){var t=new Uint8Array(this.digestLength);return this.finish(t),t},t}();t.HMAC=n;t.hash=i,t.default=i;t.hmac=function(t,e){var i=new n(t).update(e),s=i.digest();return i.clean(),s};t.pbkdf2=function(t,e,i,s){for(var r=new n(t),h=r.digestLength,f=new Uint8Array(4),a=new Uint8Array(h),o=new Uint8Array(h),u=new Uint8Array(s),d=0;d*h<s;d++){var p=d+1;f[0]=p>>>24&255,f[1]=p>>>16&255,f[2]=p>>>8&255,f[3]=p>>>0&255,r.reset(),r.update(e),r.update(f),r.finish(o);for(b=0;b<h;b++)a[b]=o[b];for(b=2;b<=i;b++){r.reset(),r.update(o).finish(o);for(var c=0;c<h;c++)a[c]^=o[c]}for(var b=0;b<h&&d*h+b<s;b++)u[d*h+b]=a[b]}for(d=0;d<h;d++)a[d]=o[d]=0;for(d=0;d<4;d++)f[d]=0;return r.clean(),u}}(i);var s=i.default;for(var r in i)s[r]=i[r];"object"==typeof module&&"object"==typeof module.exports?module.exports=s:"function"==typeof define&&define.amd?define(function(){return s}):t.sha256=s}(this);
+
+function and(a, b) {
+  var t = a.length - b.length
+  c = []
+  if (t > 0) {
+    b = Array(t).fill(0).concat(b)
+  } else if (t < 0) {
+    a = Array(-t).fill(0).concat(a)
+  }
+  for (var i = 0; i < a.length; i++) {
+    c.push(((a[i] == b[i]) && (a[i] == 0)) ? 1 : 0)
+  }
+  return c
+}
+
+function xor(a, b) {
+  var t = a.length - b.length
+  var c = []
+  if (t > 0) {
+    b = Array(t).fill(0).concat(b)
+  } else if (t < 0) {
+    a = Array(-t).fill(0).concat(a)
+  }
+  for (var i = 0; i < a.length; i++) {
+    c.push(a[i] != b[i] ? 1 : 0)
+  }
+  return c
+}
+// Big endian
+function rShift(a, b) {
+  if (a.length <= b) {
+    return [0]
+  }
+  if (b == 0) {
+    return a
+  }
+  return a.slice(0, -b)
+}
+
+function getAs5bitArray(a) {
+  /*if (a.length != 5) {
+    console.log("returning false")
+    console.log(a.length)
+    a = Array(5 - (a.length % 5)).fill(0).concat(a)
+    console.log(a)
+    //return false
+  }*/
+  var c = []
+  for (var i = 0; i < a.length; i += 5) {
+    c.push(16 * a[i] + 8 * a[i + 1] + 4 * a[i + 2] + 2 * a[i + 3] + a[i + 4])
+  }
+  return c
+}
+
+function getAsBitArray(v) {
+  /*if (v >> 5 != 0) {
+    console.log("bit error!")
+  }*/
+  //var c = []
+  //for (var i = 0; i < v.length; i++) {
+  //c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
+  //}
+  return [v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1]
+}
+
+function polyMod(v) {
+  var c = [1]
+  var c0 = []
+  for (var i = 0; i < v.length; i++) {
+    c0 = rShift(c, 35)
+    //console.log(c0.length)
+    //console.log(c.length)
+    c = xor(c.slice(-35).concat([0,0,0,0,0]), getAsBitArray(v[i]))
+    //console.log(c.length)
+    if (c0.length < 5) {
+      c0 = Array(5-c0.length).fill(0).concat(c0)
+    } /*else if (c0.length != 5) {
+      //console.log("unknown error")
+      //console.log(c0.length)
+    }*/
+    if (c0[4] != 0) {
+      c = xor(c, [1,0,0,1,1,0,0,0,1,1,1,1,0,0,1,0,1,0,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1])
+    }
+    if (c0[3] != 0) {
+      c = xor(c, [1,1,1,1,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0])
+    }
+    if (c0[2] != 0) {
+      c = xor(c, [1,1,1,1,0,0,1,1,0,0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,0,0,1,1,1,1,0,0,0,1,0,0])
+    }
+    if (c0[1] != 0) {
+      c = xor(c, [1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,0,0,0,1,0,1,0,1,0,1,0,0,0])
+    }
+    if (c0[0] != 0) {
+      c = xor(c, [1,1,1,1,0,0,1,0,0,1,1,1,1,0,1,0,0,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0])
+    }
+  }
+  return xor(c, [1])
+}
+
+// document.write(getHexAsBitArray("07ffffffff").join(","));
+/*function getHexAsBitArray(v) {
+  var c = []
+  for (var i = 0; i < v.length; i++) {
+    if (v[i] == "0") {
+      c = c.concat([0,0,0,0])
+    } else if (v[i] == "1") {
+      c = c.concat([0,0,0,1])
+    } else if (v[i] == "2") {
+      c = c.concat([0,0,1,0])
+    } else if (v[i] == "3") {
+      c = c.concat([0,0,1,1])
+    } else if (v[i] == "4") {
+      c = c.concat([0,1,0,0])
+    } else if (v[i] == "5") {
+      c = c.concat([0,1,0,1])
+    } else if (v[i] == "6") {
+      c = c.concat([0,1,1,0])
+    } else if (v[i] == "7") {
+      c = c.concat([0,1,1,1])
+    } else if (v[i] == "8") {
+      c = c.concat([1,0,0,0])
+    } else if (v[i] == "9") {
+      c = c.concat([1,0,0,1])
+    } else if (v[i] == "A") {
+      c = c.concat([1,0,1,0])
+    } else if (v[i] == "B") {
+      c = c.concat([1,0,1,1])
+    } else if (v[i] == "C") {
+      c = c.concat([1,1,0,0])
+    } else if (v[i] == "D") {
+      c = c.concat([1,1,0,1])
+    } else if (v[i] == "E") {
+      c = c.concat([1,1,1,0])
+    } else if (v[i] == "F") {
+      c = c.concat([1,1,1,1])
+    }
+  }
+  return c
+}*/
