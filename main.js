@@ -191,14 +191,14 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 		return
 	}
   var polymodInput = expandPrefix.concat(payloadUnparsed)
-  polymodResult = polyMod(polymodInput)
-  /*for (var i = 0; i < polymodResult.length; i++) {
+  var polymodResult = polyMod(polymodInput)
+  for (var i = 0; i < polymodResult.length; i++) {
     if (polymodResult[i] != 0) {
       console.log("checksum doesn't match")
       cleanResultAddress()
       return
     }
-  }*/
+  }
 	// Also drop the checsum
 	// TODO: Fix the range
 	var payload = convertBits(payloadUnparsed.slice(0,-8), 5, 8, false)
@@ -248,29 +248,9 @@ function EncodeBase58Simplified(b) {
 	var alphabetIdx0 = 0
 	var alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	var digits = [0]
-	/*for (var i = 0; i < b.length; i++) {
-		var carry = b[i]
-		for (var j = 0; j < digits.length; j++) {
-			carry += digits[j] << 8
-      if (isNaN(digits[j])) {
-        alert(i)
-        alert(j)
-      }
-			digits[j] = carry % 58
-			carry = (carry / 58) | 0
-		}
-		while (carry > 0) {
-      digits.push(carry%58)
-			carry = (carry / 58) | 0
-		}
-	}*/
   for (var i = 0; i < b.length; i++) {
 		for (var j = 0, carry = b[i]; j < digits.length; j++) {
 			carry += digits[j] << 8
-      if (isNaN(digits[j])) {
-        alert(i)
-        alert(j)
-      }
 			digits[j] = carry % 58
 			carry = (carry / 58) | 0
 		}
@@ -290,7 +270,7 @@ function EncodeBase58Simplified(b) {
   }
 	// reverse
 	for (var t = digits.length - 1; t >= 0; t--) {
-    console.log(alphabet[digits[t]])
+    // console.log(alphabet[digits[t]])
     answer = answer.concat(alphabet[digits[t]])
     //alert(alphabet[digits[t]])
     //alert(digits[t])
@@ -456,7 +436,7 @@ function craftCashAddress(kind, addressHash, netType) {
 	} else {
 		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
 	}
-  enc = expandPrefix.concat(payload)
+  var enc = expandPrefix.concat(payload)
 	// Append 8 zeroes.
 	/*enc = enc.concat([0, 0, 0, 0, 0, 0, 0, 0])
 	// Determine what to XOR into those 8 zeroes.
@@ -478,7 +458,7 @@ function craftCashAddress(kind, addressHash, netType) {
   }
   console.log(mod/*.slice(-5)*/)
 	var combined = payload.concat(retChecksum)
-  console.log(retChecksum)
+  console.log(polyMod(combined))
 	var ret = ""
 	if (netType == true) {
 		ret = "bitcoincash:"
@@ -542,7 +522,7 @@ function rShift(a, b) {
 }
 
 function getAs5bitArray(a) {
-  if (a.length % 5 != 0) {
+  if (a.length != 5) {
     console.log("returning false")
     console.log(a.length)
     a = Array(5 - (a.length % 5)).fill(0).concat(a)
@@ -557,43 +537,44 @@ function getAs5bitArray(a) {
 }
 
 function getAsBitArray(v) {
-  if (v[0] >> 5 != 0) {
+  if (v >> 5 != 0) {
     console.log("bit error!")
   }
-  var c = []
-  for (var i = 0; i < v.length; i++) {
-    c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
-  }
-  return c
+  //var c = []
+  //for (var i = 0; i < v.length; i++) {
+  //c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
+  //}
+  return [v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1]
 }
 
 function polyMod(v) {
   var c = [1]
+  var c0 = []
   for (var i = 0; i < v.length; i++) {
-    var c0 = rShift(c, 35)
-    console.log(c0.length)
-    console.log(c.length)
-    c = xor(c.slice(c.length - 35, c.length).concat([0,0,0,0,0]), getAsBitArray(v[i]))
-    console.log(c.length)
+    c0 = rShift(c, 35)
+    //console.log(c0.length)
+    //console.log(c.length)
+    c = xor(c.slice(-35).concat([0,0,0,0,0]), getAsBitArray(v[i]))
+    //console.log(c.length)
     if (c0.length < 5) {
       c0 = Array(5-c0.length).fill(0).concat(c0)
     } else if (c0.length != 5) {
       console.log("unknown error")
       //console.log(c0.length)
     }
-    if (c0[c0.length] != 0) {
+    if (c0[4] != 0) {
       c = xor(c, [1,0,0,1,1,0,0,0,1,1,1,1,0,0,1,0,1,0,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1])
     }
-    if (c0[c0.length-1] != 0) {
+    if (c0[3] != 0) {
       c = xor(c, [1,1,1,1,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0])
     }
-    if (c0[c0.length-2] != 0) {
+    if (c0[2] != 0) {
       c = xor(c, [1,1,1,1,0,0,1,1,0,0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,0,0,1,1,1,1,0,0,0,1,0,0])
     }
-    if (c0[c0.length-3] != 0) {
+    if (c0[1] != 0) {
       c = xor(c, [1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,0,0,0,1,0,1,0,1,0,1,0,0,0])
     }
-    if (c0[c0.length-4] != 0) {
+    if (c0[0] != 0) {
       c = xor(c, [1,1,1,1,0,0,1,0,0,1,1,1,1,0,1,0,0,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0])
     }
   }
@@ -601,7 +582,7 @@ function polyMod(v) {
 }
 
 // document.write(getHexAsBitArray("07ffffffff").join(","));
-function getHexAsBitArray(v) {
+/*function getHexAsBitArray(v) {
   var c = []
   for (var i = 0; i < v.length; i++) {
     if (v[i] == "0") {
@@ -639,4 +620,4 @@ function getHexAsBitArray(v) {
     }
   }
   return c
-}
+}*/
