@@ -129,7 +129,6 @@ document.getElementById('addressToTranslate').oninput = function() {
     }
 		parseAndConvertCashAddress("bitcoincash", input.slice(12))
 	} else if (input[0] == '1' || input[0] == '3' && input.length > 25 && input.length < 35) {
-    console.log("old address")
 		parseAndConvertOldAddress(input)
 	} else if ((input[0] == 'q' || input[0] == 'p') && input.length == 42) {
 		parseAndConvertCashAddress("bitcoincash", input)
@@ -194,7 +193,7 @@ function parseAndConvertCashAddress(prefix, payloadString) {
   var polymodResult = polyMod(polymodInput)
   for (var i = 0; i < polymodResult.length; i++) {
     if (polymodResult[i] != 0) {
-      console.log("checksum doesn't match")
+      //console.log("checksum doesn't match")
       cleanResultAddress()
       return
     }
@@ -295,11 +294,11 @@ function parseAndConvertOldAddress(oldAddress) {
 	var bytes = [0]
 	for (var i = 0; i < oldAddress.length; i++) {
 		var value = ALPHABET_MAP[oldAddress.charCodeAt(i)]
-    if (value == undefined) {
-      console.log("undefined value")
-    }
+//    if (value == undefined) {
+//      console.log("undefined value")
+//    }
 		if (value == 0 && oldAddress[i] != '1') {
-      console.log("kndw")
+//      console.log("kndw")
 			cleanResultAddress()
 			return
 		}
@@ -314,7 +313,7 @@ function parseAndConvertOldAddress(oldAddress) {
 			carry = carry >> 8
 		}
 	}
-console.log(bytes.length)
+// console.log(bytes.length)
 	var numZeros = 0
 	for (numZeros = 0; numZeros < oldAddress.length; numZeros++) {
 		if (oldAddress[numZeros] != '1') {
@@ -333,7 +332,7 @@ console.log(bytes.length)
 		cleanResultAddress()
 		return
 	}
-  console.log("cp1")
+//  console.log("cp1")
 	var answer = new Array()
 	for (var t = val.length - 1; t >= 0; t--) {
 		answer.push(val[t])
@@ -342,7 +341,7 @@ console.log(bytes.length)
 	var h = sha256(Uint8Array.from(answer.slice(0,-4)))
 	var h2 = sha256(h)
 	if (h2[0] != answer[answer.length-4] || h2[1] != answer[answer.length-3] || h2[2] != answer[answer.length-2] || h2[3] != answer[answer.length-1]) {
-    console.log("checksum doesn't match!")
+//    console.log("checksum doesn't match!")
 		cleanResultAddress()
 		return
 	}
@@ -419,8 +418,8 @@ function craftCashAddress(kind, addressHash, netType) {
 		cleanResultAddress()
 		return
 	}
-  console.log(payload.length) // 34
-  console.log("cp2")
+//  console.log(payload.length) // 34
+//  console.log("cp2")
 	// func ExpandPrefix(prefix string) []byte {
 	// ret := make(data, len(prefix) + 1)
 	// for i := 0; i < len(prefix); i++ {
@@ -447,18 +446,18 @@ function craftCashAddress(kind, addressHash, netType) {
 		retChecksum[i] = byte((mod >> uint(5*(7-i))) & 0x1f)
 	}*/
   //var toMod = getAsBitArray(enc.concat([0,0,0,0,0,0,0,0]))
-  console.log("ok")
+//  console.log("ok")
   var mod = polyMod(enc.concat([0,0,0,0,0,0,0,0]))
   var retChecksum = []
   for (var i = 0; i < 8; i++) {
     // Convert the 5-bit groups in mod to checksum values.
     // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
     retChecksum[i] = getAs5bitArray((rShift(mod, 5*(7-i))).slice(-5))[0]
-    console.log((rShift(mod, 5*(7-i))).slice(-5))
+//    console.log((rShift(mod, 5*(7-i))).slice(-5))
   }
-  console.log(mod/*.slice(-5)*/)
+//  console.log(mod/*.slice(-5)*/)
 	var combined = payload.concat(retChecksum)
-  console.log(polyMod(combined))
+//  console.log(polyMod(combined))
 	var ret = ""
 	if (netType == true) {
 		ret = "bitcoincash:"
@@ -522,13 +521,13 @@ function rShift(a, b) {
 }
 
 function getAs5bitArray(a) {
-  if (a.length != 5) {
+  /*if (a.length != 5) {
     console.log("returning false")
     console.log(a.length)
     a = Array(5 - (a.length % 5)).fill(0).concat(a)
     console.log(a)
     //return false
-  }
+  }*/
   var c = []
   for (var i = 0; i < a.length; i += 5) {
     c.push(16 * a[i] + 8 * a[i + 1] + 4 * a[i + 2] + 2 * a[i + 3] + a[i + 4])
@@ -537,9 +536,9 @@ function getAs5bitArray(a) {
 }
 
 function getAsBitArray(v) {
-  if (v >> 5 != 0) {
+  /*if (v >> 5 != 0) {
     console.log("bit error!")
-  }
+  }*/
   //var c = []
   //for (var i = 0; i < v.length; i++) {
   //c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
@@ -558,10 +557,10 @@ function polyMod(v) {
     //console.log(c.length)
     if (c0.length < 5) {
       c0 = Array(5-c0.length).fill(0).concat(c0)
-    } else if (c0.length != 5) {
-      console.log("unknown error")
+    } /*else if (c0.length != 5) {
+      //console.log("unknown error")
       //console.log(c0.length)
-    }
+    }*/
     if (c0[4] != 0) {
       c = xor(c, [1,0,0,1,1,0,0,0,1,1,1,1,0,0,1,0,1,0,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1])
     }
