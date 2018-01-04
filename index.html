@@ -4,8 +4,9 @@
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name=”description” content="An online tool for Bitcoin Cash users to convert between the old address format and the newer so-called Cash Address format.">
 <title>Cash Address Translator Tool</title>
-<base href="https://cashaddress.github.io/">
+<!--<base href="https://cashaddress.github.io/">-->
 <!--RUN LOCALLY: <base href=".">-->
+<base href="https://cashaddress.github.io/">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -39,7 +40,7 @@
           <div _ngcontent-c0="" class="form-group col">
             <div _ngcontent-c0="" class="input-group">
               <div _ngcontent-c0="" class="input-group-addon">Address:</div>
-              <input _ngcontent-c0="" class="form-control ng-valid ng-dirty ng-touched" id="addressToTranslate" onclick="this.select()" name="addressToTranslate" type="text">
+              <input _ngcontent-c0="" class="form-control ng-valid ng-dirty ng-touched" id="addressToTranslate" onclick="this.select()" name="addressToTranslate" type="text"><button id="correctedButton" style="display: none" _ngcontent-c0="" class="btn-error-correct btn-lg-correct btn-outline-success" type="button">Fix Errors!</button>
             </div>
           </div>
         </div>
@@ -67,7 +68,7 @@
   <div _ngcontent-c0="" class="whatsnew">What's new?<ul style="list-style-type:disc">
   <li>Conversion of BitPay addresses to Cash Address</li>
   <li>The new, only 20 KB, fast conversion engine</li>
-  <!--<li>Error correction of Cash Address (up to 2 characters!)</li>-->
+  <li>Error correction of Cash Address (up to 1 character!)</li>
 </ul>
   </div>
 </div>
