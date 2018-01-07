@@ -112,7 +112,18 @@ For more information, please refer to <http://unlicense.org> */
 // WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-var CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+const CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+const CHARSET_MAP = {"q": 0, "p": 1, "z": 2, "r": 3, "y": 4, "9": 5, "x": 6, "8": 7, "g": 8, "f": 9, "2": 10, "t": 11,
+"v": 12, "d": 13, "w": 14, "0": 15, "s": 16, "3": 17, "j": 18, "n": 19, "5": 20, "4": 21, "k": 22, "h": 23,
+"c": 24, "e": 25, "6": 26, "m": 27, "u": 28, "a": 29, "7": 30, "l": 31}
+const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+const ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
+  "8": 7, "9": 8, "A": 9, "B": 10, "C": 11, "D": 12, "E": 13, "F": 14, "G": 15,
+  "H": 16, "J": 17, "K": 18, "L": 19, "M": 20, "N": 21, "P": 22, "Q": 23, "R": 24,
+  "S": 25, "T": 26, "U": 27, "V": 28, "W": 29, "X": 30, "Y": 31, "Z": 32, "a": 33,
+  "b": 34, "c": 35, "d": 36, "e": 37, "f": 38, "g": 39, "h": 40, "i": 41, "j": 42,
+  "k": 43, "m": 44, "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51,
+  "u": 52, "v": 53, "w": 54, "x": 55, "y": 56, "z": 57}
 var correctedAddress = ""
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   document.getElementById('addressToTranslate').value = ""
@@ -170,9 +181,6 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 	// PolyMod(append(ExpandPrefix("bitcoincash"), payload...)) != 0
 	//payload := []byte(payloadString)
 	var payloadUnparsed = []
-  var CHARSET_MAP = {"q": 0, "p": 1, "z": 2, "r": 3, "y": 4, "9": 5, "x": 6, "8": 7, "g": 8, "f": 9, "2": 10, "t": 11,
-  "v": 12, "d": 13, "w": 14, "0": 15, "s": 16, "3": 17, "j": 18, "n": 19, "5": 20, "4": 21, "k": 22, "h": 23,
-  "c": 24, "e": 25, "6": 26, "m": 27, "u": 28, "a": 29, "7": 30, "l": 31}
   for (var i = 0; i < payloadString.length; i++) {
     payloadUnparsed.push(CHARSET_MAP[payloadString[i]])
   }
@@ -297,12 +305,12 @@ function CheckEncodeBase58(input, version) {
 function EncodeBase58Simplified(b) {
 	// var bigRadix = big.NewInt(58)
 	// var bigZero = big.NewInt(0)
-	var ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	var digits = [0]
   for (var i = 0; i < b.length; i++) {
 		for (var j = 0, carry = b[i]; j < digits.length; j++) {
 			carry += digits[j] << 8
 			digits[j] = carry % 58
+      // https://jsperf.com/different-ways-to-truncate
 			carry = (carry / 58) | 0
 		}
 		while (carry > 0) {
@@ -322,7 +330,7 @@ function EncodeBase58Simplified(b) {
 	// reverse
 	for (var t = digits.length - 1; t >= 0; t--) {
     // console.log(alphabet[digits[t]])
-    answer = answer.concat(alphabet[digits[t]])
+    answer = answer.concat(ALPHABET[digits[t]])
     //alert(alphabet[digits[t]])
     //alert(digits[t])
 	}
@@ -332,13 +340,6 @@ function EncodeBase58Simplified(b) {
 function parseAndConvertOldAddress(oldAddress) {
 	// "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
   // Written by hand
-	var ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
-  "8": 7, "9": 8, "A": 9, "B": 10, "C": 11, "D": 12, "E": 13, "F": 14, "G": 15,
-  "H": 16, "J": 17, "K": 18, "L": 19, "M": 20, "N": 21, "P": 22, "Q": 23, "R": 24,
-  "S": 25, "T": 26, "U": 27, "V": 28, "W": 29, "X": 30, "Y": 31, "Z": 32, "a": 33,
-  "b": 34, "c": 35, "d": 36, "e": 37, "f": 38, "g": 39, "h": 40, "i": 41, "j": 42,
-  "k": 43, "m": 44, "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51,
-  "u": 52, "v": 53, "w": 54, "x": 55, "y": 56, "z": 57}
 
 	var bytes = [0]
 	for (var i = 0; i < oldAddress.length; i++) {
