@@ -124,7 +124,6 @@ const ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
   "b": 34, "c": 35, "d": 36, "e": 37, "f": 38, "g": 39, "h": 40, "i": 41, "j": 42,
   "k": 43, "m": 44, "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51,
   "u": 52, "v": 53, "w": 54, "x": 55, "y": 56, "z": 57}
-  const t = 96 // (ord('a') & 0xe0)
 var correctedAddress = ""
 window.onload = window.onhashchange = function() {
   document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
@@ -639,7 +638,7 @@ function rebuildAddress(bytes) {
   var ret = ""
   var i = 0
   while (bytes[i] != 0) {
-    ret = ret.concat(String.fromCharCode(t + bytes[i]))
+    ret = ret.concat(String.fromCharCode(96 + bytes[i]))
     i++
   }
   ret = ret.concat(":")
