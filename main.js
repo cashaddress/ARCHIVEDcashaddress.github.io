@@ -125,10 +125,6 @@ const ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
   "k": 43, "m": 44, "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51,
   "u": 52, "v": 53, "w": 54, "x": 55, "y": 56, "z": 57}
 var correctedAddress = ""
-window.onload = window.onhashchange = function() {
-  document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
-  document.getElementById('addressToTranslate').oninput()
-}
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   document.getElementById('addressToTranslate').value = ""
   document.getElementById('resultAddressBlock').style.display = 'none'
