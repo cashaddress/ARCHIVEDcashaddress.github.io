@@ -124,7 +124,12 @@ const ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
   "b": 34, "c": 35, "d": 36, "e": 37, "f": 38, "g": 39, "h": 40, "i": 41, "j": 42,
   "k": 43, "m": 44, "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51,
   "u": 52, "v": 53, "w": 54, "x": 55, "y": 56, "z": 57}
+  const t = 96 // (ord('a') & 0xe0)
 var correctedAddress = ""
+window.onload = window.onhashchange = function() {
+  document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
+  document.getElementById('addressToTranslate').oninput()
+}
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   document.getElementById('addressToTranslate').value = ""
   document.getElementById('resultAddressBlock').style.display = 'none'
@@ -197,13 +202,13 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 	var netType = true
 	if (prefix == "bitcoincash") {
 		expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0]
-	} else if (prefix == "bchtest") {
+	} else /*if (prefix == "bchtest")*/ {
 		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
 		netType = false
-	} else {
+	} /*else {
 		cleanResultAddress()
 		return
-	}
+	}*/
   var polymodInput = expandPrefix.concat(payloadUnparsed)
   var polymodResult = polyMod(polymodInput)
   // console.log(polymodResult)
@@ -554,7 +559,7 @@ function xor(a, b) {
     a = Array(-t).fill(0).concat(a)
   }
   for (var i = 0; i < a.length; i++) {
-    c.push(a[i] != b[i] ? 1 : 0)
+    c.push(a[i] ^ b[i])
   }
   return c
 }
@@ -631,7 +636,6 @@ function polyMod(v) {
 
 function rebuildAddress(bytes) {
   // console.log("called")
-  var t = 96 // (ord('a') & 0xe0)
   var ret = ""
   var i = 0
   while (bytes[i] != 0) {
