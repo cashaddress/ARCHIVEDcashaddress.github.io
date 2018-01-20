@@ -499,13 +499,18 @@ function craftCashAddress(kind, addressHash, netType) {
 	}*/
   //var toMod = getAsBitArray(enc.concat([0,0,0,0,0,0,0,0]))
 //  console.log("ok")
-  var mod = polyMod(enc.concat([0,0,0,0,0,0,0,0]))
+  var mod = simplify(polyMod(enc.concat([0,0,0,0,0,0,0,0])))
   var retChecksum = []
+  var t = []
   for (var i = 0; i < 8; i++) {
     // Convert the 5-bit groups in mod to checksum values.
     // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
-    retChecksum[i] = getAs5bitArray((rShift(mod, 5*(7-i))).slice(-5))[0]
-//    console.log((rShift(mod, 5*(7-i))).slice(-5))
+    t = mod.slice(0)
+    retChecksum[i] = simplify(
+      and(
+        rShift(t, 5*(7-i)), [31]
+      )
+    )[0]
   }
 //  console.log(mod/*.slice(-5)*/)
 	var combined = payload.concat(retChecksum)
@@ -535,19 +540,20 @@ function cleanResultAddress() {
 
 !function(t,e){var i={};!function(t){"use strict";function e(t,e,i,r,n){for(var h,f,a,o,u,d,p,c,b,g,l,y,v;n>=64;){for(h=e[0],f=e[1],a=e[2],o=e[3],u=e[4],d=e[5],p=e[6],c=e[7],g=0;g<16;g++)l=r+4*g,t[g]=(255&i[l])<<24|(255&i[l+1])<<16|(255&i[l+2])<<8|255&i[l+3];for(g=16;g<64;g++)b=t[g-2],y=(b>>>17|b<<15)^(b>>>19|b<<13)^b>>>10,b=t[g-15],v=(b>>>7|b<<25)^(b>>>18|b<<14)^b>>>3,t[g]=(y+t[g-7]|0)+(v+t[g-16]|0);for(g=0;g<64;g++)y=(((u>>>6|u<<26)^(u>>>11|u<<21)^(u>>>25|u<<7))+(u&d^~u&p)|0)+(c+(s[g]+t[g]|0)|0)|0,v=((h>>>2|h<<30)^(h>>>13|h<<19)^(h>>>22|h<<10))+(h&f^h&a^f&a)|0,c=p,p=d,d=u,u=o+y|0,o=a,a=f,f=h,h=y+v|0;e[0]+=h,e[1]+=f,e[2]+=a,e[3]+=o,e[4]+=u,e[5]+=d,e[6]+=p,e[7]+=c,r+=64,n-=64}return r}function i(t){var e=(new r).update(t),i=e.digest();return e.clean(),i}t.__esModule=!0,t.digestLength=32,t.blockSize=64;var s=new Uint32Array([1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298]);var r=function(){function i(){this.digestLength=t.digestLength,this.blockSize=t.blockSize,this.state=new Int32Array(8),this.temp=new Int32Array(64),this.buffer=new Uint8Array(128),this.bufferLength=0,this.bytesHashed=0,this.finished=!1,this.reset()}return i.prototype.reset=function(){return this.state[0]=1779033703,this.state[1]=3144134277,this.state[2]=1013904242,this.state[3]=2773480762,this.state[4]=1359893119,this.state[5]=2600822924,this.state[6]=528734635,this.state[7]=1541459225,this.bufferLength=0,this.bytesHashed=0,this.finished=!1,this},i.prototype.clean=function(){for(t=0;t<this.buffer.length;t++)this.buffer[t]=0;for(var t=0;t<this.temp.length;t++)this.temp[t]=0;this.reset()},i.prototype.update=function(t,i){if(void 0===i&&(i=t.length),this.finished)throw new Error("SHA256: can't update because hash was finished.");var s=0;if(this.bytesHashed+=i,this.bufferLength>0){for(;this.bufferLength<64&&i>0;)this.buffer[this.bufferLength++]=t[s++],i--;64===this.bufferLength&&(e(this.temp,this.state,this.buffer,0,64),this.bufferLength=0)}for(i>=64&&(s=e(this.temp,this.state,t,s,i),i%=64);i>0;)this.buffer[this.bufferLength++]=t[s++],i--;return this},i.prototype.finish=function(t){if(!this.finished){var i=this.bytesHashed,s=this.bufferLength,r=i/536870912|0,n=i<<3,h=i%64<56?64:128;this.buffer[s]=128;for(f=s+1;f<h-8;f++)this.buffer[f]=0;this.buffer[h-8]=r>>>24&255,this.buffer[h-7]=r>>>16&255,this.buffer[h-6]=r>>>8&255,this.buffer[h-5]=r>>>0&255,this.buffer[h-4]=n>>>24&255,this.buffer[h-3]=n>>>16&255,this.buffer[h-2]=n>>>8&255,this.buffer[h-1]=n>>>0&255,e(this.temp,this.state,this.buffer,0,h),this.finished=!0}for(var f=0;f<8;f++)t[4*f+0]=this.state[f]>>>24&255,t[4*f+1]=this.state[f]>>>16&255,t[4*f+2]=this.state[f]>>>8&255,t[4*f+3]=this.state[f]>>>0&255;return this},i.prototype.digest=function(){var t=new Uint8Array(this.digestLength);return this.finish(t),t},i.prototype._saveState=function(t){for(var e=0;e<this.state.length;e++)t[e]=this.state[e]},i.prototype._restoreState=function(t,e){for(var i=0;i<this.state.length;i++)this.state[i]=t[i];this.bytesHashed=e,this.finished=!1,this.bufferLength=0},i}();t.Hash=r;var n=function(){function t(t){this.inner=new r,this.outer=new r,this.blockSize=this.inner.blockSize,this.digestLength=this.inner.digestLength;var e=new Uint8Array(this.blockSize);if(t.length>this.blockSize)(new r).update(t).finish(e).clean();else for(i=0;i<t.length;i++)e[i]=t[i];for(i=0;i<e.length;i++)e[i]^=54;this.inner.update(e);for(i=0;i<e.length;i++)e[i]^=106;this.outer.update(e),this.istate=new Uint32Array(8),this.ostate=new Uint32Array(8),this.inner._saveState(this.istate),this.outer._saveState(this.ostate);for(var i=0;i<e.length;i++)e[i]=0}return t.prototype.reset=function(){return this.inner._restoreState(this.istate,this.inner.blockSize),this.outer._restoreState(this.ostate,this.outer.blockSize),this},t.prototype.clean=function(){for(var t=0;t<this.istate.length;t++)this.ostate[t]=this.istate[t]=0;this.inner.clean(),this.outer.clean()},t.prototype.update=function(t){return this.inner.update(t),this},t.prototype.finish=function(t){return this.outer.finished?this.outer.finish(t):(this.inner.finish(t),this.outer.update(t,this.digestLength).finish(t)),this},t.prototype.digest=function(){var t=new Uint8Array(this.digestLength);return this.finish(t),t},t}();t.HMAC=n;t.hash=i,t.default=i;t.hmac=function(t,e){var i=new n(t).update(e),s=i.digest();return i.clean(),s};t.pbkdf2=function(t,e,i,s){for(var r=new n(t),h=r.digestLength,f=new Uint8Array(4),a=new Uint8Array(h),o=new Uint8Array(h),u=new Uint8Array(s),d=0;d*h<s;d++){var p=d+1;f[0]=p>>>24&255,f[1]=p>>>16&255,f[2]=p>>>8&255,f[3]=p>>>0&255,r.reset(),r.update(e),r.update(f),r.finish(o);for(b=0;b<h;b++)a[b]=o[b];for(b=2;b<=i;b++){r.reset(),r.update(o).finish(o);for(var c=0;c<h;c++)a[c]^=o[c]}for(var b=0;b<h&&d*h+b<s;b++)u[d*h+b]=a[b]}for(d=0;d<h;d++)a[d]=o[d]=0;for(d=0;d<4;d++)f[d]=0;return r.clean(),u}}(i);var s=i.default;for(var r in i)s[r]=i[r];"object"==typeof module&&"object"==typeof module.exports?module.exports=s:"function"==typeof define&&define.amd?define(function(){return s}):t.sha256=s}(this);
 
-/*function and(a, b) {
+function and(a, b) {
   var t = a.length - b.length
   c = []
-  if (t > 0) {
-    b = Array(t).fill(0).concat(b)
-  } else if (t < 0) {
-    a = Array(-t).fill(0).concat(a)
-  }
-  for (var i = 0; i < a.length; i++) {
-    c.push(((a[i] == b[i]) && (a[i] == 0)) ? 1 : 0)
+  if (t >= 0) {
+    for (var i = 0; i < b.length; i++) {
+      c.push(a[i+t] & b[i])
+    }
+  } else {
+    for (var i = 0; i < a.length; i++) {
+      c.push(a[i] & b[i-t])
+    }
   }
   return c
-}*/
+}
 
 function xor(a, b) {
   var t = a.length - b.length
@@ -562,75 +568,84 @@ function xor(a, b) {
   }
   return c
 }
-// Big endian
+
 function rShift(a, b) {
-  if (a.length <= b) {
+  // 35 >= b >= 0
+  if (a.length === 0) {
     return [0]
   }
-  if (b == 0) {
+  if (b > 31) {
+    a = a.slice(0, -1)
+    b -= 32
+  }
+  if (b === 0) {
     return a
   }
-  return a.slice(0, -b)
-}
-
-function getAs5bitArray(a) {
-  /*if (a.length != 5) {
-    console.log("returning false")
-    console.log(a.length)
-    a = Array(5 - (a.length % 5)).fill(0).concat(a)
-    console.log(a)
-    //return false
-  }*/
-  var c = []
-  for (var i = 0; i < a.length; i += 5) {
-    c.push(16 * a[i] + 8 * a[i + 1] + 4 * a[i + 2] + 2 * a[i + 3] + a[i + 4])
+  for (var i = a.length - 1; i > 0; i--) {
+    a[i] >>>= b
+    // alternative code:
+    a[i] |= a[i-1] & (b * (b+1) / 2 | 0) << (32 - b)
+    // a[i] |= (a[i-1] << (32 - b)) >>> (32 - b)
   }
-  return c
+  a[0] >>>= b
+  if (a[0] === 0) {
+    return a.slice(1)
+  }
+  return a
 }
 
-function getAsBitArray(v) {
-  /*if (v >> 5 != 0) {
-    console.log("bit error!")
-  }*/
-  //var c = []
-  //for (var i = 0; i < v.length; i++) {
-  //c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
-  //}
-  return [v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1]
+function add5zerosAtTheEnd(a) {
+  a = [0].concat(a)
+  for (var i = 1; i < a.length; i++) {
+    a[i-1] |= a[i] >>> 27
+    a[i] <<= 5
+  }
+  return a
 }
 
 function polyMod(v) {
-  var c = [1]
-  var c0 = []
+  var c = [0,1]
+  var c0 = [0]
+  var temp = []
   for (var i = 0; i < v.length; i++) {
-    c0 = rShift(c, 35)
+    temp = c.slice(0)
+    c0 = rShift(temp, 35)
     //console.log(c0.length)
     //console.log(c.length)
-    c = xor(c.slice(-35).concat([0,0,0,0,0]), getAsBitArray(v[i]))
+    c = xor(add5zerosAtTheEnd(and(c, [7, -1])), [v[i]])
     //console.log(c.length)
-    if (c0.length < 5) {
+    /*if (c0.length < 5) {
       c0 = Array(5-c0.length).fill(0).concat(c0)
-    } /*else if (c0.length != 5) {
+    }*/ /*else if (c0.length != 5) {
       //console.log("unknown error")
       //console.log(c0.length)
     }*/
-    if (c0[4] != 0) {
-      c = xor(c, [1,0,0,1,1,0,0,0,1,1,1,1,0,0,1,0,1,0,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1])
+    if (c0.length === 0) {
+      c0 = [0]
     }
-    if (c0[3] != 0) {
-      c = xor(c, [1,1,1,1,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0])
+    temp = c.slice(0)
+    if (c0[0] & 1) {
+      c = xor(temp, [0x98, 0xf2bc8e61])
+      temp = c.slice(0)
     }
-    if (c0[2] != 0) {
-      c = xor(c, [1,1,1,1,0,0,1,1,0,0,1,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,0,0,1,1,1,1,0,0,0,1,0,0])
+    if (c0[0] & 2) {
+      c = xor(temp, [0x79, 0xb76d99e2])
+      temp = c.slice(0)
     }
-    if (c0[1] != 0) {
-      c = xor(c, [1,0,1,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,0,0,0,1,0,1,0,1,0,1,0,0,0])
+    if (c0[0] & 4) {
+      c = xor(temp, [0xf3, 0x3e5fb3c4])
+      temp = c.slice(0)
     }
-    if (c0[0] != 0) {
-      c = xor(c, [1,1,1,1,0,0,1,0,0,1,1,1,1,0,1,0,0,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0])
+    if (c0[0] & 8) {
+      c = xor(temp, [0xae, 0x2eabe2a8])
+      temp = c.slice(0)
+    }
+    if (c0[0] & 16) {
+      c = xor(temp, [0x1e, 0x4f43e470])
+      temp = c.slice(0)
     }
   }
-  return xor(c, [1])
+  return xor(temp, [1])
 }
 
 function rebuildAddress(bytes) {
@@ -649,11 +664,18 @@ function rebuildAddress(bytes) {
 }
 
 function simplify(v) {
+  if (v.length === 0) {
+    return [0]
+  }
   var i = 0;
-  while (v[i] == 0) {
+  while (v[i] === 0) {
     i++
   }
-  return v.slice(i)
+  var z = v.slice(i)
+  if (z.length === 0) {
+    z = [0]
+  }
+  return z
 }
 
 // document.write(getHexAsBitArray("07ffffffff").join(","));
@@ -695,4 +717,32 @@ function simplify(v) {
     }
   }
   return c
+}*/
+
+/*function getAs5bitArray(a) {
+  /*if (a.length != 5) {
+    console.log("returning false")
+    console.log(a.length)
+    a = Array(5 - (a.length % 5)).fill(0).concat(a)
+    console.log(a)
+    //return false
+  }
+  //var c = []
+  //for (var i = 0; i < a.length; i += 5) {
+  //  c.push(16 * a[i] + 8 * a[i + 1] + 4 * a[i + 2] + 2 * a[i + 3] + a[i + 4])
+  //}
+  return 16 * a[i] + 8 * a[i + 1] + 4 * a[i + 2] + 2 * a[i + 3] + a[i + 4]
+}*/
+
+/*function getAsBitArray(v) {
+  /*if (v >> 5 != 0) {
+    console.log("bit error!")
+  }
+  //var c = []
+  //for (var i = 0; i < v.length; i++) {
+  //c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
+  //}
+
+  //return [v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1]
+  return [v]
 }*/
