@@ -468,8 +468,7 @@ function craftCashAddress(kind, addressHash, netType) {
   for (var i = 0; i < 8; i++) {
     // Convert the 5-bit groups in mod to checksum values.
     // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
-    t = mod.slice(0);
-    retChecksum[i] = simplify(and(rShift(t, 5 * (7 - i)), [31]))[0];
+    retChecksum[i] = simplify(and(rShift(mod, 5 * (7 - i)), [31]))[0];
   }
   var combined = payload.concat(retChecksum);
   var ret = "";
@@ -533,27 +532,28 @@ function xor(a, b) {
 
 function rShift(a, b) {
   // 35 >= b >= 0
-  if (a.length === 0) {
+  var t = a.slice(0);
+  if (t.length === 0) {
     return [0];
   }
   if (b > 31) {
-    a = a.slice(0, -1);
+    t = a.slice(0, -1);
     b -= 32;
   }
   if (b === 0) {
-    return a;
+    return t;
   }
-  for (var i = a.length - 1; i > 0; i--) {
-    a[i] >>>= b;
+  for (var i = t.length - 1; i > 0; i--) {
+    t[i] >>>= b;
     // alternative code:
-    a[i] |= (a[i - 1] & ((2 << (b + 1)) - 1)) << (32 - b);
+    t[i] |= (t[i - 1] & ((2 << (b + 1)) - 1)) << (32 - b);
     // a[i] |= (a[i-1] << (32 - b)) >>> (32 - b)
   }
-  a[0] >>>= b;
-  if (a[0] === 0) {
-    return a.slice(1);
+  t[0] >>>= b;
+  if (t[0] === 0) {
+    return t.slice(1);
   }
-  return a;
+  return t;
 }
 
 function add5zerosAtTheEnd(a) {
@@ -570,35 +570,28 @@ function polyMod(v) {
   var c0 = [0];
   var temp = [];
   for (var i = 0; i < v.length; i++) {
-    temp = c.slice(0);
-    c0 = rShift(temp, 35);
+    c0 = rShift(c, 35);
     c = xor(add5zerosAtTheEnd(and(c, [7, -1])), [v[i]]);
     if (c0.length === 0) {
       c0 = [0];
     }
-    temp = c.slice(0);
     if (c0[0] & 1) {
-      c = xor(temp, [0x98, 0xf2bc8e61]);
-      temp = c.slice(0);
+      c = xor(c, [0x98, 0xf2bc8e61]);
     }
     if (c0[0] & 2) {
-      c = xor(temp, [0x79, 0xb76d99e2]);
-      temp = c.slice(0);
+      c = xor(c, [0x79, 0xb76d99e2]);
     }
     if (c0[0] & 4) {
-      c = xor(temp, [0xf3, 0x3e5fb3c4]);
-      temp = c.slice(0);
+      c = xor(c, [0xf3, 0x3e5fb3c4]);
     }
     if (c0[0] & 8) {
-      c = xor(temp, [0xae, 0x2eabe2a8]);
-      temp = c.slice(0);
+      c = xor(c, [0xae, 0x2eabe2a8]);
     }
     if (c0[0] & 16) {
-      c = xor(temp, [0x1e, 0x4f43e470]);
-      temp = c.slice(0);
+      c = xor(c, [0x1e, 0x4f43e470]);
     }
   }
-  return xor(temp, [1]);
+  return xor(c, [1]);
 }
 
 function rebuildAddress(bytes) {
