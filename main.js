@@ -170,8 +170,6 @@ document.getElementById('addressToTranslate').oninput = function() {
       }
     }
 		parseAndConvertOldAddress(input.toLowerCase())
-
-		// Sorry! I think uppercase testnet addresses won't be used!
 	} else if (input[0] == 'm' || input[0] == 'n' || input[0] == '2') {
 		parseAndConvertOldAddress(input)
 	} else if ((input[0] == 'C' || input[0] == 'H') && input.length > 25 && input.length < 36) {
@@ -182,8 +180,6 @@ document.getElementById('addressToTranslate').oninput = function() {
 }
 
 function parseAndConvertCashAddress(prefix, payloadString) {
-	// PolyMod(append(ExpandPrefix("bitcoincash"), payload...)) != 0
-	//payload := []byte(payloadString)
 	var payloadUnparsed = []
   for (var i = 0; i < payloadString.length; i++) {
     payloadUnparsed.push(CHARSET_MAP[payloadString[i]])
@@ -204,16 +200,11 @@ function parseAndConvertCashAddress(prefix, payloadString) {
 	} else /*if (prefix == "bchtest")*/ {
 		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
 		netType = false
-	} /*else {
-		cleanResultAddress()
-		return
-	}*/
+	}
   var polymodInput = expandPrefix.concat(payloadUnparsed)
   var polymodResult = polyMod(polymodInput)
-  // console.log(polymodResult)
   for (var i = 0; i < polymodResult.length; i++) {
     if (polymodResult[i] != 0) {
-      // alert("checksum doesn't match")
       var syndromes = {}
       var c = []
       var t = 0
@@ -226,7 +217,6 @@ function parseAndConvertCashAddress(prefix, payloadString) {
             t += c[k]
           }
           if (t == 0) {
-            // Set rebuildAddress(polymodInput)
             correctedAddress = rebuildAddress(polymodInput)
             document.getElementById('correctedButton').style = ""
             return
@@ -263,8 +253,6 @@ function parseAndConvertCashAddress(prefix, payloadString) {
       return
     }
   }
-	// Also drop the checsum
-	// TODO: Fix the range
 	var payload = convertBits(payloadUnparsed.slice(0,-8), 5, 8, false)
 	if (payload.length == 0) {
 		cleanResultAddress()
@@ -291,24 +279,16 @@ function craftOldAddress(kind, addressHash, netType) {
 }
 
 function CheckEncodeBase58(input, version) {
-  var b = []
-	// b := make([]byte, 0, 1+len(input)+4)
-	b.push(version)
+  var b = [version]
 	b = b.concat(input)
 	var h = sha256(Uint8Array.from(b))
 	var h2 = sha256(h)
-	//	fmt.Println("%x %x %v", checksum, []byte(h2[:4]), len(checksum))
-  b = b.concat(Array.from(h2).slice(0,4))
-	//fmt.Println("%x", b[len(b)-4:])
-	//println(js.Global.Get("bs58").Call("encode", b).String())
+  b = b.concat(Array.from(h2).slice(0, 4))
   document.getElementById('resultAddress').value = EncodeBase58Simplified(b)
   document.getElementById('resultAddressBlock').style.display = 'block'
-	//println(EncodeBase58(b))
 }
 
 function EncodeBase58Simplified(b) {
-	// var bigRadix = big.NewInt(58)
-	// var bigZero = big.NewInt(0)
 	var digits = [0]
   for (var i = 0; i < b.length; i++) {
 		for (var j = 0, carry = b[i]; j < digits.length; j++) {
@@ -318,85 +298,54 @@ function EncodeBase58Simplified(b) {
 			carry = (carry / 58) | 0
 		}
 		while (carry > 0) {
-      digits.push(carry%58)
+      digits.push(carry % 58)
 			carry = (carry / 58) | 0
 		}
 	}
 	var answer = ""
 	// leading zero bytes
-  for (var i = 0; i < b.length; i++) {
-    if (b[i] != 0) {
-      break
-    }
-    //digits.push(alphabetIdx0)
+  for (var i = 0; i < b.length && b[i] === 0; i++) {
     answer = answer.concat("1")
   }
 	// reverse
 	for (var t = digits.length - 1; t >= 0; t--) {
-    // console.log(alphabet[digits[t]])
     answer = answer.concat(ALPHABET[digits[t]])
-    //alert(alphabet[digits[t]])
-    //alert(digits[t])
 	}
 	return answer
 }
 
 function parseAndConvertOldAddress(oldAddress) {
-	// "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-  // Written by hand
-
 	var bytes = [0]
 	for (var i = 0; i < oldAddress.length; i++) {
 		var value = ALPHABET_MAP[oldAddress[i]]
-//    if (value == undefined) {
-//      console.log("undefined value")
-//    }
 		if (value == undefined) {
-      //console.log(oldAddress[i])
 			cleanResultAddress()
 			return
 		}
-		var carry = value
 		for (var j = 0; j < bytes.length; j++) {
-			carry += bytes[j] * 58
-			bytes[j] = carry & 0xff
-			carry = carry >> 8
+			value += bytes[j] * 58
+			bytes[j] = value & 0xff
+			value >>= 8
 		}
-		while (carry > 0) {
-			bytes.push(carry&0xff)
-			carry = carry >> 8
+		while (value > 0) {
+			bytes.push(value & 0xff)
+			value >>= 8
 		}
 	}
-// console.log(bytes.length)
-	/*var numZeros = 0
-  while (oldAddress[numZeros] == "1") {
-    numZeros++
-  }*/
-  for (var i = 0; i < oldAddress.length; i++) {
-    if (oldAddress[i] != "1") {
-      break
-    }
+
+  for (var i = 0; i < oldAddress.length && oldAddress[i] === "1"; i++) {
     bytes.push(0)
   }
-  /*var val = []
-  for (var i = 0; i < numZeros + bytes.length; i++) {
-    val.push(0)
-  }
-  for (var i = 0; i < bytes.length; i++) {
-    val[i] = bytes[i]
-  }*/
-
 	if (bytes.length < 5) {
 		cleanResultAddress()
 		return
 	}
-//  console.log("cp1")
+
   bytes = bytes.reverse()
 	var version = bytes[0]
 	var h = sha256(Uint8Array.from(bytes.slice(0,-4)))
 	var h2 = sha256(h)
 	if (h2[0] != bytes[bytes.length-4] || h2[1] != bytes[bytes.length-3] || h2[2] != bytes[bytes.length-2] || h2[3] != bytes[bytes.length-1]) {
-//    console.log("checksum doesn't match!")
 		cleanResultAddress()
 		return
 	}
@@ -465,13 +414,10 @@ function convertBits(data, fromBits, tobits, pad) {
 
 function craftCashAddress(kind, addressHash, netType) {
 	var payload = packCashAddressData(kind, addressHash)
-	//checksum := CreateChecksum(prefix, payload)
 	if (payload.length == 0) {
 		cleanResultAddress()
 		return
 	}
-//  console.log(payload.length) // 34
-//  console.log("cp2")
 	// func ExpandPrefix(prefix string) []byte {
 	// ret := make(data, len(prefix) + 1)
 	// for i := 0; i < len(prefix); i++ {
@@ -488,18 +434,7 @@ function craftCashAddress(kind, addressHash, netType) {
 		expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0]
 	}
   var enc = expandPrefix.concat(payload)
-	// Append 8 zeroes.
-	/*enc = enc.concat([0, 0, 0, 0, 0, 0, 0, 0])
-	// Determine what to XOR into those 8 zeroes.
-	var mod = PolyMod(enc)
-	var retChecksum = [0,0,0,0,0,0,0,0]
-	for i := 0; i < 8; i++ {
-		// Convert the 5-bit groups in mod to checksum values.
-		retChecksum[i] = byte((mod >> uint(5*(7-i))) & 0x1f)
-	}*/
-  //var toMod = getAsBitArray(enc.concat([0,0,0,0,0,0,0,0]))
-//  console.log("ok")
-  var mod = simplify(polyMod(enc.concat([0,0,0,0,0,0,0,0])))
+  var mod = polyMod(enc.concat([0,0,0,0,0,0,0,0]))
   var retChecksum = []
   var t = []
   for (var i = 0; i < 8; i++) {
@@ -512,9 +447,7 @@ function craftCashAddress(kind, addressHash, netType) {
       )
     )[0]
   }
-//  console.log(mod/*.slice(-5)*/)
 	var combined = payload.concat(retChecksum)
-//  console.log(polyMod(combined))
 	var ret = ""
 	if (netType == true) {
 		ret = "bitcoincash:"
@@ -610,16 +543,7 @@ function polyMod(v) {
   for (var i = 0; i < v.length; i++) {
     temp = c.slice(0)
     c0 = rShift(temp, 35)
-    //console.log(c0.length)
-    //console.log(c.length)
     c = xor(add5zerosAtTheEnd(and(c, [7, -1])), [v[i]])
-    //console.log(c.length)
-    /*if (c0.length < 5) {
-      c0 = Array(5-c0.length).fill(0).concat(c0)
-    }*/ /*else if (c0.length != 5) {
-      //console.log("unknown error")
-      //console.log(c0.length)
-    }*/
     if (c0.length === 0) {
       c0 = [0]
     }
@@ -649,7 +573,6 @@ function polyMod(v) {
 }
 
 function rebuildAddress(bytes) {
-  // console.log("called")
   var ret = ""
   var i = 0
   while (bytes[i] != 0) {
@@ -677,72 +600,3 @@ function simplify(v) {
   }
   return z
 }
-
-// document.write(getHexAsBitArray("07ffffffff").join(","));
-/*function getHexAsBitArray(v) {
-  var c = []
-  for (var i = 0; i < v.length; i++) {
-    if (v[i] == "0") {
-      c = c.concat([0,0,0,0])
-    } else if (v[i] == "1") {
-      c = c.concat([0,0,0,1])
-    } else if (v[i] == "2") {
-      c = c.concat([0,0,1,0])
-    } else if (v[i] == "3") {
-      c = c.concat([0,0,1,1])
-    } else if (v[i] == "4") {
-      c = c.concat([0,1,0,0])
-    } else if (v[i] == "5") {
-      c = c.concat([0,1,0,1])
-    } else if (v[i] == "6") {
-      c = c.concat([0,1,1,0])
-    } else if (v[i] == "7") {
-      c = c.concat([0,1,1,1])
-    } else if (v[i] == "8") {
-      c = c.concat([1,0,0,0])
-    } else if (v[i] == "9") {
-      c = c.concat([1,0,0,1])
-    } else if (v[i] == "A") {
-      c = c.concat([1,0,1,0])
-    } else if (v[i] == "B") {
-      c = c.concat([1,0,1,1])
-    } else if (v[i] == "C") {
-      c = c.concat([1,1,0,0])
-    } else if (v[i] == "D") {
-      c = c.concat([1,1,0,1])
-    } else if (v[i] == "E") {
-      c = c.concat([1,1,1,0])
-    } else if (v[i] == "F") {
-      c = c.concat([1,1,1,1])
-    }
-  }
-  return c
-}*/
-
-/*function getAs5bitArray(a) {
-  /*if (a.length != 5) {
-    console.log("returning false")
-    console.log(a.length)
-    a = Array(5 - (a.length % 5)).fill(0).concat(a)
-    console.log(a)
-    //return false
-  }
-  //var c = []
-  //for (var i = 0; i < a.length; i += 5) {
-  //  c.push(16 * a[i] + 8 * a[i + 1] + 4 * a[i + 2] + 2 * a[i + 3] + a[i + 4])
-  //}
-  return 16 * a[i] + 8 * a[i + 1] + 4 * a[i + 2] + 2 * a[i + 3] + a[i + 4]
-}*/
-
-/*function getAsBitArray(v) {
-  /*if (v >> 5 != 0) {
-    console.log("bit error!")
-  }
-  //var c = []
-  //for (var i = 0; i < v.length; i++) {
-  //c = c.concat([v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1])
-  //}
-
-  //return [v >> 4, (v >> 3)&1, (v >> 2)&1, (v >> 1)&1, v&1]
-  return [v]
-}*/
