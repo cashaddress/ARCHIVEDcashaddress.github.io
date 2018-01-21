@@ -125,15 +125,28 @@ const ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
   "k": 43, "m": 44, "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51,
   "u": 52, "v": 53, "w": 54, "x": 55, "y": 56, "z": 57}
 var correctedAddress = ""
+var qrcode = new QRCode("qrcode", {
+    text: "",
+    width: 128,
+    height: 128,
+    colorDark : "#000000",
+    colorLight : "#ffffff",
+    correctLevel : QRCode.CorrectLevel.L
+});
+var qrcode2 = new QRCode("qrcode2", {
+    text: "",
+    width: 128,
+    height: 128,
+    colorDark : "#000000",
+    colorLight : "#ffffff",
+    correctLevel : QRCode.CorrectLevel.L
+});
 window.onload = window.onhashchange = function() {
   document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
   document.getElementById('addressToTranslate').oninput()
 }
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
-  document.getElementById('addressToTranslate').value = ""
-  document.getElementById('resultAddressBlock').style.display = 'none'
-  document.getElementById('resultAddress').value = ""
-  document.getElementById('correctedButton').style = "display: none"
+  cleanResultAddress();
 }
 document.getElementById('correctedButton').onclick = function() {
   document.getElementById('correctedButton').style = "display: none"
@@ -307,6 +320,20 @@ function CheckEncodeBase58(input, version) {
   b = b.concat(Array.from(h2).slice(0, 4));
   document.getElementById("resultAddress").value = EncodeBase58Simplified(b);
   document.getElementById("resultAddressBlock").style.display = "block";
+  /*var qr = qrcode(0, "M");
+  qr.addData(document.getElementById("addressToTranslate").value.toUpperCase());
+  qr.make();
+  document.getElementById('qrcode').innerHTML = qr.createImgTag();
+  document.getElementById("qrcode").style = "display: inline-block;";
+  var qrResult = qrcode(0, "L");
+  qr.addData(document.getElementById("resultAddress").value);
+  qr.make();
+  document.getElementById('qrcode2').innerHTML = qr.createImgTag();
+  document.getElementById("qrcode2").style = "display: inline-block;";*/
+  qrcode2.makeCode(document.getElementById("resultAddress").value);
+  document.getElementById("qrcode2").style = "display: inline-block;";
+  qrcode.makeCode(document.getElementById("addressToTranslate").value.toUpperCase());
+  document.getElementById("qrcode").style = "display: inline-block;";
 }
 
 function EncodeBase58Simplified(b) {
@@ -464,7 +491,6 @@ function craftCashAddress(kind, addressHash, netType) {
   var enc = expandPrefix.concat(payload);
   var mod = polyMod(enc.concat([0, 0, 0, 0, 0, 0, 0, 0]));
   var retChecksum = [];
-  var t = [];
   for (var i = 0; i < 8; i++) {
     // Convert the 5-bit groups in mod to checksum values.
     // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
@@ -483,6 +509,10 @@ function craftCashAddress(kind, addressHash, netType) {
   if (ret.length == 54 || ret.length == 50) {
     document.getElementById("resultAddress").value = ret;
     document.getElementById("resultAddressBlock").style.display = "block";
+    qrcode2.makeCode(ret.toUpperCase());
+    document.getElementById("qrcode2").style = "display: inline-block;";
+    qrcode.makeCode(document.getElementById("addressToTranslate").value);
+    document.getElementById("qrcode").style = "display: inline-block;";
   } else {
     cleanResultAddress();
   }
@@ -492,6 +522,8 @@ function cleanResultAddress() {
   document.getElementById("resultAddress").value = "";
   document.getElementById("resultAddressBlock").style.display = "none";
   document.getElementById("correctedButton").style = "display: none";
+  document.getElementById("qrcode2").style = "display: none;";
+  document.getElementById("qrcode").style = "display: none;";
 }
 
 // SHA256

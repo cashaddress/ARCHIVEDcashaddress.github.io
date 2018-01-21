@@ -34,7 +34,7 @@
 
   <form novalidate="" class="ng-valid ng-dirty ng-touched">
     <div class="card">
-      <div class="card-block">
+      <div class="card-block" style="text-align: center;">
         <h6 class="card-title">Original</h6>
         <div class="row">
           <div class="form-group col">
@@ -44,11 +44,12 @@
             </div>
           </div>
         </div>
+        <div id="qrcode" align="center" style="display: none;text-align:center;"></div>
       </div>
     </div>
 
     <div id="resultAddressBlock" class="card" style="display: none;">
-      <div class="card-block">
+      <div class="card-block" style="text-align: center;">
         <h6 class="card-title">Translation</h6>
         <div class="row">
           <div class="form-group col">
@@ -58,6 +59,7 @@
             </div>
           </div>
         </div>
+        <div id="qrcode2" style="display: none;"></div>
       </div>
     </div>
     <button class="btn btn-outline-primary btn-lg btn-block" type="button">Reset</button>
@@ -67,9 +69,9 @@
   </div>
   <div class="whatsnew">What's new?<ul style="list-style-type:disc">
   <li>Conversion of BitPay addresses to Cash Address</li>
-  <li>The new, only 20 KB, fast conversion engine</li>
+  <li>The new, only 20 KB, ultra-fast conversion engine</li>
   <li>Error correction of Cash Address (up to 1 character!)</li>
 </ul>
   </div>
 </div>
-</app-root><script src="./main.min.js"></script></body></html>
+</app-root><script src="./qrcode.min.js"></script><script src="./main.min.js"></script></body></html>
