@@ -147,7 +147,7 @@ window.onload = window.onhashchange = function() {
 }
 document.getElementById('demo').onclick = function() {
   if(window.location.href.includes('#')) {
-    window.location.href = window.location.href.substring(0, window.location.href.lastIndexOf('#'));
+    window.location.href = window.location.href.substring(0, window.location.href.indexOf('#'));
   }
   window.location.href += '#1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu';
 }
