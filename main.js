@@ -131,7 +131,7 @@ var qrcode = new QRCode("qrcode", {
     height: 128,
     colorDark : "#000000",
     colorLight : "#ffffff",
-    correctLevel : QRCode.CorrectLevel.L
+    correctLevel : QRCode.CorrectLevel.M
 });
 var qrcode2 = new QRCode("qrcode2", {
     text: "",
@@ -139,7 +139,7 @@ var qrcode2 = new QRCode("qrcode2", {
     height: 128,
     colorDark : "#000000",
     colorLight : "#ffffff",
-    correctLevel : QRCode.CorrectLevel.L
+    correctLevel : QRCode.CorrectLevel.M
 });
 window.onload = window.onhashchange = function() {
   document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
