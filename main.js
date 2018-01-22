@@ -145,6 +145,12 @@ window.onload = window.onhashchange = function() {
   document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
   document.getElementById('addressToTranslate').oninput()
 }
+document.getElementById('demo').onclick = function() {
+  if(window.location.href.includes('#')) {
+    window.location.href = window.location.href.substring(0, window.location.href.lastIndexOf('#'));
+  }
+  window.location.href += '#1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu';
+}
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   cleanResultAddress();
 }
