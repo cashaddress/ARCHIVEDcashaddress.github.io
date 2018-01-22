@@ -147,9 +147,9 @@ window.onload = window.onhashchange = function() {
 }
 document.getElementById('demo').onclick = function() {
   if(window.location.href.includes('#')) {
-    document.getElementById('demo').href = window.location.href.substring(0, window.location.href.lastIndexOf('#'));
+    window.location.href = window.location.href.substring(0, window.location.href.lastIndexOf('#'));
   }
-  document.getElementById('demo').href += '#1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu';
+  window.location.href += '#1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu';
 }
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   cleanResultAddress();
