@@ -564,13 +564,14 @@ function xor(a, b) {
 
 function rShift(a, b) {
   // 35 >= b >= 0
-  var t = a.slice(0);
-  if (t.length === 0) {
+  if (a.length === 0) {
     return [0];
   }
   if (b > 31) {
-    t = a.slice(0, -1);
+    var t = a.slice(0, -1);
     b -= 32;
+  } else {
+    var t = a.slice(0);
   }
   if (b === 0) {
     return t;
@@ -605,7 +606,7 @@ function polyMod(v) {
     c0 = rShift(c, 35);
     c = xor(add5zerosAtTheEnd(and(c, [7, -1])), [v[i]]);
     if (c0.length === 0) {
-      c0 = [0];
+      continue;
     }
     if (c0[0] & 1) {
       c = xor(c, [0x98, 0xf2bc8e61]);
