@@ -245,7 +245,7 @@ document.getElementById("addressToTranslate").oninput = function() {
   } else if (document.getElementById("vanitygen").checked) {
     document.getElementById("resultAddress").value =
       "";
-    if (input[0] === "q" && input.length < 10 && (input[1] === "q" || input[1] === "p" || input[1] === "z" || input[1] === "r")) {
+    if (input[0] === "q" && (input[1] === "q" || input[1] === "p" || input[1] === "z" || input[1] === "r")) {
       var payloadUnparsed = [];
       for (var i = 0; i < input.length; i++) {
         payloadUnparsed.push(CHARSET_MAP[input[i]]);
@@ -255,7 +255,7 @@ document.getElementById("addressToTranslate").oninput = function() {
       //console.log(payload)
       //CheckEncodeBase58(payload.slice(1), 0, false)
       var t = VanityEncode(payload);
-      document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0) + 1;
+      document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0 + 1);
       document.getElementById("resultAddressBlock").style.display = "block";
     } else {
       cleanResultAddress();
