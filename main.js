@@ -142,8 +142,14 @@ var qrcode2 = new QRCode("qrcode2", {
     correctLevel : QRCode.CorrectLevel.M
 });
 window.onload = window.onhashchange = function() {
-  document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
-  document.getElementById('addressToTranslate').oninput()
+  if (window.location.hash === "#vanitygen") {
+    document.getElementById('vanitygen').checked = true;
+  } else {
+    document.getElementById('vanitygen').checked = false;
+    document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
+    document.getElementById('addressToTranslate').oninput()
+  }
+  document.getElementById('vanitygen').onchange();
 }
 document.getElementById('demo').onclick = function() {
   if(window.location.href.includes('#')) {
@@ -159,7 +165,31 @@ document.getElementById('correctedButton').onclick = function() {
   document.getElementById('addressToTranslate').value = correctedAddress
   document.getElementById('addressToTranslate').oninput()
 }
+document.getElementById('vanitygen').onchange = function() {
+  if (document.getElementById('vanitygen').checked) {
+    document.getElementById("cashinfo").style = "display:none";
+    document.getElementById("whatsnew").style = "margin-top:-23px;padding-bottom:20px;background:rgb(159, 254, 240);";
+    document.getElementById('whatsnew').innerHTML = "If you want Vanitygen to generate an address that starts with, for example qcemen, you should write qcemen to the address box, and it'll give you a few options for you to run with Vanitygen. You should choose one of them and run vanitygen with it. <br>\
+    Details: <br> \
+    <ul style='list-style-type:disc'> \
+      <li>It must start with 'q'</li> \
+      <li>Second letter must be 'q', 'p', 'z', 'r'</li> \
+      <li>Must be at most 9 characters long</li> \
+      <li>Other characters:</li> \
+    </ul><table class='chartable'><tr><td>q</td><td>p</td><td>z</td><td>r</td><td>y</td><td>9</td><td>x</td><td>8</td></tr><tr><td>g</td><td>f</td><td>2</td><td>t</td><td>v</td><td>d</td><td>w</td><td>0</td></tr><tr><td>s</td><td>3</td><td>j</td><td>n</td><td>5</td><td>4</td><td>k</td><td>h</td></tr><tr><td>c</td><td>e</td><td>6</td><td>m</td><td>u<br></td><td>a</td><td>7</td><td>l<br></td></tr></table>";
+  } else {
+    document.getElementById("cashinfo").style = "display:block";
+    document.getElementById("whatsnew").style = "";
+    document.getElementById('whatsnew').innerHTML = "What's new? (<a id='demo' style='color: #0275d8;text-decoration: underline;'>Demo</a>)<ul style='list-style-type:disc'> \
+      <li>Conversion of BitPay addresses to Cash Address</li> \
+      <li>The new, only 13 KB, <strong>ultra-fast</strong>, memory-effective conversion engine</li> \
+      <li>Error correction of Cash Address (up to 1 character!)</li> \
+      <li>QR codes!</li> \
+    </ul>";
+  }
+}
 document.getElementById("addressToTranslate").oninput = function() {
+  cleanResultAddress;
   input = document.getElementById("addressToTranslate").value;
   if (
     input[11] == ":" &&
@@ -212,11 +242,53 @@ document.getElementById("addressToTranslate").oninput = function() {
     input.length < 36
   ) {
     parseAndConvertOldAddress(input);
+  } else if (document.getElementById("vanitygen").checked) {
+    document.getElementById("resultAddress").value =
+      "";
+    if (input[0] === "q" && input.length < 10 && (input[1] === "q" || input[1] === "p" || input[1] === "z" || input[1] === "r")) {
+      var payloadUnparsed = [];
+      for (var i = 0; i < input.length; i++) {
+        payloadUnparsed.push(CHARSET_MAP[input[i]]);
+      }
+      payloadUnparsed = payloadUnparsed.concat(Array(40-payloadUnparsed.length).fill(0))
+      var payload = convertBits(payloadUnparsed.slice(0), 5, 8, true);
+      //console.log(payload)
+      //CheckEncodeBase58(payload.slice(1), 0, false)
+      var t = VanityEncode(payload);
+      document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0) + 1;
+      document.getElementById("resultAddressBlock").style.display = "block";
+    } else {
+      cleanResultAddress();
+    }
   } else {
     cleanResultAddress();
   }
 };
 
+function VanityEncode(b) {
+  var digits = [0];
+  for (var i = 0; i < b.length; i++) {
+    for (var j = 0, carry = b[i]; j < digits.length; j++) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    while (carry > 0) {
+      digits.push(carry % 58);
+      carry = (carry / 58) | 0;
+    }
+  }
+  var answer = "";
+  // leading zero bytes
+  for (var i = 0; i < b.length && b[i] === 0; i++) {
+    answer = answer.concat("1");
+  }
+  // reverse
+  for (var t = digits.length - 1; t >= 0; t--) {
+    answer = answer.concat(ALPHABET[digits[t]]);
+  }
+  return answer;
+}
 
 function parseAndConvertCashAddress(prefix, payloadString) {
   var payloadUnparsed = [];
@@ -276,7 +348,7 @@ function parseAndConvertCashAddress(prefix, payloadString) {
           polymodInput[syndromes[simplify(xor(s0, polymodResult))]>>5] ^= syndromes[simplify(xor(s0, polymodResult))] % 32
           //console.log(rebuildAddress(polymodInput))
           //console.log(polymodInput[syndromes[simplify(xor(s0, polymodResult))]>>5])
-          if (syndromes[s0]>>5 >= polymodInput.length || syndromes[simplify(xor(s0, polymodResult))]>>5 >= polymodInput.length) {
+          if (syndromes[s0]>>5 >= polymodInput.length || syndromes[simplify(xor(s0, polymodResult))]>>5 >= polymodInput.length) {
             alert("er")
           }
           // Set rebuildAddress(polymodInput)
