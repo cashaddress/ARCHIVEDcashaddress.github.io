@@ -250,12 +250,21 @@ document.getElementById("addressToTranslate").oninput = function() {
       for (var i = 0; i < input.length; i++) {
         payloadUnparsed.push(CHARSET_MAP[input[i]]);
       }
-      payloadUnparsed = payloadUnparsed.concat(Array(40-payloadUnparsed.length).fill(0))
-      var payload = convertBits(payloadUnparsed.slice(0), 5, 8, true);
+      payloadUnparsedNew = payloadUnparsed.concat(Array(40-(payloadUnparsed.length%40)).fill(0))
+      var payload = convertBits(payloadUnparsedNew.slice(0), 5, 8, true);
       //console.log(payload)
       //CheckEncodeBase58(payload.slice(1), 0, false)
-      var t = VanityEncode(payload);
-      document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0 + 2);
+      var addrMin = VanityEncode(payload);
+      payloadUnparsedNew = payloadUnparsed.concat(Array(40-(payloadUnparsed.length%40)).fill(31))
+      var payload = convertBits(payloadUnparsedNew.slice(0), 5, 8, true);
+      var addrMax = VanityEncode(payload);
+      for (var i = 0; i < addrMin.length && addrMin[i] === addrMax[i]; i++) {}
+      if (ALPHABET_MAP[addrMax[i]] - ALPHABET_MAP[addrMin[i]] < 2) {
+        document.getElementById("resultAddress").value = addrMin.slice(0, i)
+      } else {
+        document.getElementById("resultAddress").value = addrMin.slice(0, i).concat(ALPHABET[(ALPHABET_MAP[addrMax[i]] + ALPHABET_MAP[addrMin[i]])>>1])
+      }
+      //document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0 + 2);
       document.getElementById("resultAddressBlock").style.display = "block";
     } else {
       cleanResultAddress();
