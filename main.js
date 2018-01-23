@@ -255,7 +255,7 @@ document.getElementById("addressToTranslate").oninput = function() {
       //console.log(payload)
       //CheckEncodeBase58(payload.slice(1), 0, false)
       var t = VanityEncode(payload);
-      document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0 + 1);
+      document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0 + 2);
       document.getElementById("resultAddressBlock").style.display = "block";
     } else {
       cleanResultAddress();
