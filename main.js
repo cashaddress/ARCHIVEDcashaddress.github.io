@@ -93,7 +93,7 @@ document.getElementById("addressToTranslate").oninput = function() {
     } else {
       cleanResultAddress();
     }
-  } catch (err) {
+  } catch (e) {
     cleanResultAddress();
   }
 };

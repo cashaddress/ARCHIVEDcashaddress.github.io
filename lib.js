@@ -101,8 +101,8 @@ const ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
 function parseAndConvertCashAddress(prefix, payloadString) {
   var payloadUnparsed = new Array(payloadString.length);
   for (var i = 0; i < payloadString.length; i++) {
-    if (CHARSET_MAP[payloadString[i]] == undefined) {
-      throw "Unexpected character!"
+    if (CHARSET_MAP[payloadString[i]] === undefined) {
+      throw "Unexpected character!";
     }
     payloadUnparsed[i] = CHARSET_MAP[payloadString[i]];
   }
@@ -125,21 +125,20 @@ function parseAndConvertCashAddress(prefix, payloadString) {
   }
   var polymodInput = expandPrefix.concat(payloadUnparsed);
   var polymodResult = polyMod(polymodInput);
-    if (polymodResult[0] != 0 || polymodResult[1] != 0) {
-      var syndromes = {};
-      var c = [];
-      for (var p = 0; p < polymodInput.length; p++) {
-        for (var e = 1; e < 32; e++) {
-          polymodInput[p] ^= e;
-          c = polyMod(polymodInput);
-          if (c[0] + c[1]) {
-            correctedAddress = rebuildAddress(polymodInput);
-            document.getElementById("correctedButton").style = "";
-            return "";
-          }
-          //syndromes[simplify(xor(c, polymodResult))] = p * 32 + e
-          polymodInput[p] ^= e;
+  if (polymodResult[0] !== 0 || polymodResult[1] !== 0) {
+    var syndromes = {};
+    for (var p = 0; p < polymodInput.length; p++) {
+      for (var e = 1; e < 32; e++) {
+        polymodInput[p] ^= e;
+        var c = polyMod(polymodInput);
+        if (c[0] === 0 && c[1] === 0) {
+          correctedAddress = rebuildAddress(polymodInput);
+          document.getElementById("correctedButton").style = "";
+          return "";
         }
+        //syndromes[simplify(xor(c, polymodResult))] = p * 32 + e
+        polymodInput[p] ^= e;
+      }
       /*for (var s0 in syndromes) {
           if (simplify(xor(s0, polymodResult)) in syndromes) {
             console.log("is")
@@ -164,8 +163,8 @@ function parseAndConvertCashAddress(prefix, payloadString) {
             //return
           }
         }*/
-      throw "Can't correct errors!"
     }
+    throw "Can't correct errors!";
   }
   var payload = convertBits(payloadUnparsed.slice(0, -8), 5, 8, false);
   var addressType = payload[0] >> 3; // 0 (P2PKH) or 1 (P2SH)
@@ -227,7 +226,7 @@ function parseAndConvertOldAddress(oldAddress) {
   var bytes = [0];
   for (var i = 0; i < oldAddress.length; i++) {
     var value = ALPHABET_MAP[oldAddress[i]];
-    if (value == undefined) {
+    if (value === undefined) {
       throw "Unexpected character!"
     }
     for (var j = 0; j < bytes.length; j++) {
@@ -300,7 +299,7 @@ function convertBits(data, fromBits, tobits, pad) {
   for (var i = 0; i < data.length; i++) {
     var value = data[i];
     if (value < 0 || value >>> fromBits !== 0) {
-      throw "convertBits error!"
+      throw "convertBits error!";
     }
     acc = ((acc << fromBits) | value) & maxAcc;
     bits += fromBits;
@@ -314,7 +313,7 @@ function convertBits(data, fromBits, tobits, pad) {
       ret.push((acc << (tobits - bits)) & maxv);
     }
   } else if (bits >= fromBits || ((acc << (tobits - bits)) & maxv) != 0) {
-    throw "convertBits error!"
+    throw "convertBits error!";
   }
   return ret;
 }
@@ -345,7 +344,7 @@ function craftCashAddress(kind, addressHash, netType) {
     // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
     retChecksum[i] = mod_1 & 31;
     mod_1 >>>= 5;
-    mod_1 |= (mod_0 & 31) << 27
+    mod_1 |= (mod_0 & 31) << 27;
     mod_0 >>>= 5;
   }
   for (; i > 0; i--) {
@@ -368,7 +367,7 @@ function craftCashAddress(kind, addressHash, netType) {
   if (ret.length == 54 || ret.length == 50) {
     return ret;
   } else {
-    throw "Unexpected converted address length!"
+    throw "Unexpected converted address length!";
   }
 }
 
