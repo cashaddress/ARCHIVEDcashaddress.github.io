@@ -33,7 +33,7 @@ are preferring our alternatives, since `cashaddr.bitcoincash.org` looks more tru
 
 While CashAddrJS, a really famous library, uses 10 KB of code to encode Cash Address, our tiny code (1.09 KB when minified) can do it much faster!
 
-Copy paste this code to encode an Cash Address:
+Copy paste this code to encode a Cash Address:
 
 ```javascript
 // Copyright (c) 2018 DesWurstes
