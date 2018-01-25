@@ -136,34 +136,22 @@ function parseAndConvertCashAddress(prefix, payloadString) {
           document.getElementById("correctedButton").style = "";
           return "";
         }
-        //syndromes[simplify(xor(c, polymodResult))] = p * 32 + e
+        //syndromes[[polymodResult[0] ^ c[0], polymodResult[1] ^ c[1]]] = p * 32 + e
         polymodInput[p] ^= e;
       }
-      /*for (var s0 in syndromes) {
-          if (simplify(xor(s0, polymodResult)) in syndromes) {
-            console.log("is")
-            //console.log(polymodInput[syndromes[s0]>>5])
-            //console.log(rebuildAddress(polymodInput))
-            polymodInput[syndromes[s0]>>5] ^= syndromes[s0] % 32
-            //console.log(rebuildAddress(polymodInput))
-            //console.log(polymodInput[syndromes[s0]>>5])
-            //console.log(polymodInput[syndromes[simplify(xor(s0, polymodResult))]>>5])
-            polymodInput[syndromes[simplify(xor(s0, polymodResult))]>>5] ^= syndromes[simplify(xor(s0, polymodResult))] % 32
-            //console.log(rebuildAddress(polymodInput))
-            //console.log(polymodInput[syndromes[simplify(xor(s0, polymodResult))]>>5])
-            if (syndromes[s0]>>5 >= polymodInput.length || syndromes[simplify(xor(s0, polymodResult))]>>5 >= polymodInput.length) {
-              alert("er")
-            }
-            // Set rebuildAddress(polymodInput)
-            correctedAddress = rebuildAddress(polymodInput)
-            console.log(correctedAddress)
-            document.getElementById('correctedButton').style = ""
-            //polymodInput[syndromes[s0]>>5] ^= syndromes[s0] % 32
-            //polymodInput[syndromes[simplify(xor(s0, polymodResult))]>>5] ^= syndromes[simplify(xor(s0, polymodResult))] % 32
-            //return
-          }
-        }*/
     }
+    /*for (var s0 in syndromes) {
+        if ([s0[0] ^ polymodResult[0], s0[1] ^ polymodResult[1]] in syndromes) {
+          polymodInput[syndromes[s0]>>>5] ^= syndromes[s0] % 32
+          polymodInput[syndromes[[s0[0] ^ polymodResult[0], s0[1] ^ polymodResult[1]]]>>5] ^= syndromes[[s0[0] ^ polymodResult[0], s0[1] ^ polymodResult[1]]] % 32
+          //if (syndromes[s0]>>5 >= polymodInput.length || syndromes[simplify(xor(s0, polymodResult))]>>5 >= polymodInput.length) {
+          //  alert("er")
+          //}
+          correctedAddress = rebuildAddress(polymodInput)
+          console.log(correctedAddress)
+          document.getElementById('correctedButton').style = ""
+        }
+    }*/
     throw "Can't correct errors!";
   }
   var payload = convertBits(payloadUnparsed.slice(0, -8), 5, 8, false);
