@@ -15,22 +15,34 @@ var qrcode2 = new QRCode("qrcode2", {
     colorLight : "#ffffff",
     correctLevel : QRCode.CorrectLevel.M
 });
+
 window.onload = window.onhashchange = function() {
   document.getElementById('addressToTranslate').value = window.location.hash.slice(1)
   document.getElementById('addressToTranslate').oninput()
 }
+
 document.getElementById('demo').onclick = function() {
   window.location.hash = '#1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu';
 }
+
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
   document.getElementById("addressToTranslate").value = "";
   cleanResultAddress();
 }
+
 document.getElementById('correctedButton').onclick = function() {
   document.getElementById('correctedButton').style = "display: none"
   document.getElementById('addressToTranslate').value = correctedAddress
   document.getElementById('addressToTranslate').oninput()
 }
+
+document.getElementById('copy').onclick = function() {
+  document.getElementById('resultAddress').select();
+  document.execCommand('Copy');
+  window.getSelection().removeAllRanges();
+  this.innerHTML = 'Copied';
+}
+
 document.getElementById("addressToTranslate").oninput = function() {
   cleanResultAddress();
   input = document.getElementById("addressToTranslate").value;
@@ -98,7 +110,6 @@ document.getElementById("addressToTranslate").oninput = function() {
   }
 };
 
-
 function setResultOldAddress(a) {
   // Error correction
   if (a == "") {return}
@@ -108,6 +119,7 @@ function setResultOldAddress(a) {
   qrcode2.makeCode(document.getElementById("resultAddress").value);
   document.getElementById("qrcode2").style = "display: inline-block;";
   document.getElementById("resultAddressBlock").style.display = "block";
+  this.innerHTML = 'Copy';
 }
 
 function setResultCashAddress(a) {
@@ -117,6 +129,7 @@ function setResultCashAddress(a) {
   qrcode2.makeCode(document.getElementById("resultAddress").value.toUpperCase());
   document.getElementById("qrcode2").style = "display: inline-block;";
   document.getElementById("resultAddressBlock").style.display = "block";
+  this.innerHTML = 'Copy';
 }
 
 function cleanResultAddress() {
@@ -125,4 +138,5 @@ function cleanResultAddress() {
   document.getElementById("correctedButton").style = "display: none";
   document.getElementById("qrcode2").style = "display: none;";
   document.getElementById("qrcode").style = "display: none;";
+  this.innerHTML = 'Copy';
 }
