@@ -85,16 +85,16 @@ function craftCashAddress(kind, addressHash, mainNet, withPrefix) {
   var combined = payload.concat(retChecksum);
   var ret = "";
   if (withPrefix) {
- 		if (mainNet == true) {
-    	ret = "bitcoincash:";
-  		} else {
-    	ret = "bchtest:";
-  	}
+    if (mainNet == true) {
+      ret = "bitcoincash:";
+    } else {
+      ret = "bchtest:";
+    }
   }
   for (var i = 0; i < combined.length; i++) {
     ret = ret.concat(CHARSET[combined[i]]);
   }
-  return ret
+  return ret;
 }
 
 function polyMod(v) {
