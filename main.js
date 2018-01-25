@@ -37,10 +37,10 @@ document.getElementById('correctedButton').onclick = function() {
 }
 
 document.getElementById('copy').onclick = function() {
+  this.innerHTML = 'Copied';
   document.getElementById('resultAddress').select();
   document.execCommand('Copy');
   window.getSelection().removeAllRanges();
-  this.innerHTML = 'Copied';
 }
 
 document.getElementById("addressToTranslate").oninput = function() {
