@@ -158,6 +158,7 @@ document.getElementById('demo').onclick = function() {
   window.location.href += '#1BpEi6DfDAUFd7GtittLSdBeYJvcoaVggu';
 }
 document.getElementsByClassName('btn btn-outline-primary btn-lg btn-block')[0].onclick = function() {
+  document.getElementById("addressToTranslate").value = "";
   cleanResultAddress();
 }
 document.getElementById('correctedButton').onclick = function() {
@@ -169,12 +170,11 @@ document.getElementById('vanitygen').onchange = function() {
   if (document.getElementById('vanitygen').checked) {
     document.getElementById("cashinfo").style = "display:none";
     document.getElementById("whatsnew").style = "margin-top:-23px;padding-bottom:20px;background:rgb(159, 254, 240);";
-    document.getElementById('whatsnew').innerHTML = "If you want Vanitygen to generate an address that starts with, for example qcemen, you should write qcemen to the address box, and it'll give you a few options for you to run with Vanitygen. You should choose one of them and run vanitygen with it. <br>\
+    document.getElementById('whatsnew').innerHTML = "If you want Vanitygen to generate an address that starts with, for example qremen, you should write qremen to the address box, and it'll give you the most probable option for you to run with Vanitygen. You should choose one of them and run vanitygen with it. <br>\
     Details: <br> \
     <ul style='list-style-type:disc'> \
       <li>It must start with 'q'</li> \
       <li>Second letter must be 'q', 'p', 'z', 'r'</li> \
-      <li>Must be at most 9 characters long</li> \
       <li>Other characters:</li> \
     </ul><table class='chartable'><tr><td>q</td><td>p</td><td>z</td><td>r</td><td>y</td><td>9</td><td>x</td><td>8</td></tr><tr><td>g</td><td>f</td><td>2</td><td>t</td><td>v</td><td>d</td><td>w</td><td>0</td></tr><tr><td>s</td><td>3</td><td>j</td><td>n</td><td>5</td><td>4</td><td>k</td><td>h</td></tr><tr><td>c</td><td>e</td><td>6</td><td>m</td><td>u<br></td><td>a</td><td>7</td><td>l<br></td></tr></table>";
   } else {
@@ -189,7 +189,7 @@ document.getElementById('vanitygen').onchange = function() {
   }
 }
 document.getElementById("addressToTranslate").oninput = function() {
-  cleanResultAddress;
+  cleanResultAddress();
   input = document.getElementById("addressToTranslate").value;
   if (
     input[11] == ":" &&
@@ -243,26 +243,26 @@ document.getElementById("addressToTranslate").oninput = function() {
   ) {
     parseAndConvertOldAddress(input);
   } else if (document.getElementById("vanitygen").checked) {
-    document.getElementById("resultAddress").value =
-      "";
+    cleanResultAddress();
     if (input[0] === "q" && (input[1] === "q" || input[1] === "p" || input[1] === "z" || input[1] === "r")) {
       var payloadUnparsed = [];
       for (var i = 0; i < input.length; i++) {
         payloadUnparsed.push(CHARSET_MAP[input[i]]);
       }
       payloadUnparsedNew = payloadUnparsed.concat(Array(40-(payloadUnparsed.length%40)).fill(0))
-      var payload = convertBits(payloadUnparsedNew.slice(0), 5, 8, true);
+      var payload = convertBits(payloadUnparsedNew.slice(0), 5, 8, false);
       //console.log(payload)
       //CheckEncodeBase58(payload.slice(1), 0, false)
-      var addrMin = VanityEncode(payload);
+      var addrMin = EncodeBase58Simplified(payload);
       payloadUnparsedNew = payloadUnparsed.concat(Array(40-(payloadUnparsed.length%40)).fill(31))
-      var payload = convertBits(payloadUnparsedNew.slice(0), 5, 8, true);
-      var addrMax = VanityEncode(payload);
+      var payload = convertBits(payloadUnparsedNew.slice(0), 5, 8, false);
+      var addrMax = EncodeBase58Simplified(payload);
       for (var i = 0; i < addrMin.length && addrMin[i] === addrMax[i]; i++) {}
       if (ALPHABET_MAP[addrMax[i]] - ALPHABET_MAP[addrMin[i]] < 2) {
         document.getElementById("resultAddress").value = addrMin.slice(0, i)
       } else {
         document.getElementById("resultAddress").value = addrMin.slice(0, i).concat(ALPHABET[(ALPHABET_MAP[addrMax[i]] + ALPHABET_MAP[addrMin[i]])>>1])
+        console.log((ALPHABET_MAP[addrMax[i]] - ALPHABET_MAP[addrMin[i]]))
       }
       //document.getElementById("resultAddress").value = t.slice(0, (input.length/1.171596199)|0 + 2);
       document.getElementById("resultAddressBlock").style.display = "block";
@@ -273,31 +273,6 @@ document.getElementById("addressToTranslate").oninput = function() {
     cleanResultAddress();
   }
 };
-
-function VanityEncode(b) {
-  var digits = [0];
-  for (var i = 0; i < b.length; i++) {
-    for (var j = 0, carry = b[i]; j < digits.length; j++) {
-      carry += digits[j] << 8;
-      digits[j] = carry % 58;
-      carry = (carry / 58) | 0;
-    }
-    while (carry > 0) {
-      digits.push(carry % 58);
-      carry = (carry / 58) | 0;
-    }
-  }
-  var answer = "";
-  // leading zero bytes
-  for (var i = 0; i < b.length && b[i] === 0; i++) {
-    answer = answer.concat("1");
-  }
-  // reverse
-  for (var t = digits.length - 1; t >= 0; t--) {
-    answer = answer.concat(ALPHABET[digits[t]]);
-  }
-  return answer;
-}
 
 function parseAndConvertCashAddress(prefix, payloadString) {
   var payloadUnparsed = [];
