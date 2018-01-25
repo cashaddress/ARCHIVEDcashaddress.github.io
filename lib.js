@@ -99,14 +99,13 @@ const ALPHABET_MAP = {"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6,
   "k": 43, "m": 44, "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51,
   "u": 52, "v": 53, "w": 54, "x": 55, "y": 56, "z": 57}
 function parseAndConvertCashAddress(prefix, payloadString) {
-  var payloadUnparsed = [];
+  var payloadUnparsed = new Array(payloadString.length);
   for (var i = 0; i < payloadString.length; i++) {
-    if (payloadString[i] == undefined) {
+    if (CHARSET_MAP[payloadString[i]] == undefined) {
       throw "Unexpected character!"
     }
-    payloadUnparsed.push(CHARSET_MAP[payloadString[i]]);
+    payloadUnparsed[i] = CHARSET_MAP[payloadString[i]];
   }
-  var expandPrefix = [];
   // func ExpandPrefix(prefix string) []byte {
   // ret := make(data, len(prefix) + 1)
   // for i := 0; i < len(prefix); i++ {
@@ -116,29 +115,24 @@ function parseAndConvertCashAddress(prefix, payloadString) {
   // return ret;
   // }
   // https://play.golang.org/p/NMR2ImCmdpZ
-  var netType = true;
   if (prefix == "bitcoincash") {
-    expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0];
+    var expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0];
+    var netType = true;
   } else {
-    /*if (prefix == "bchtest")*/ expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0];
-    netType = false;
+    /*if (prefix == "bchtest")*/
+    var expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0];
+    var netType = false;
   }
   var polymodInput = expandPrefix.concat(payloadUnparsed);
   var polymodResult = polyMod(polymodInput);
-  for (var i = 0; i < polymodResult.length; i++) {
-    if (polymodResult[i] != 0) {
+    if (polymodResult[0] != 0 || polymodResult[1] != 0) {
       var syndromes = {};
       var c = [];
-      var t = 0;
       for (var p = 0; p < polymodInput.length; p++) {
         for (var e = 1; e < 32; e++) {
           polymodInput[p] ^= e;
           c = polyMod(polymodInput);
-          t = 0;
-          for (var k = 0; k < c.length; k++) {
-            t += c[k];
-          }
-          if (t == 0) {
+          if (c[0] + c[1]) {
             correctedAddress = rebuildAddress(polymodInput);
             document.getElementById("correctedButton").style = "";
             return "";
@@ -146,7 +140,6 @@ function parseAndConvertCashAddress(prefix, payloadString) {
           //syndromes[simplify(xor(c, polymodResult))] = p * 32 + e
           polymodInput[p] ^= e;
         }
-      }
       /*for (var s0 in syndromes) {
           if (simplify(xor(s0, polymodResult)) in syndromes) {
             console.log("is")
@@ -306,14 +299,14 @@ function convertBits(data, fromBits, tobits, pad) {
   var maxAcc = (1 << (fromBits + tobits - 1)) - 1;
   for (var i = 0; i < data.length; i++) {
     var value = data[i];
-    if (value < 0 || value >> fromBits !== 0) {
+    if (value < 0 || value >>> fromBits !== 0) {
       throw "convertBits error!"
     }
     acc = ((acc << fromBits) | value) & maxAcc;
     bits += fromBits;
     while (bits >= tobits) {
       bits -= tobits;
-      ret.push((acc >> bits) & maxv);
+      ret.push((acc >>> bits) & maxv);
     }
   }
   if (pad) {
@@ -337,20 +330,31 @@ function craftCashAddress(kind, addressHash, netType) {
   // return ret;
   // }
   // https://play.golang.org/p/NMR2ImCmdpZ
-  var expandPrefix = [];
   if (netType == true) {
-    expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0];
+    var expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0];
   } else {
-    expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0];
+    var expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0];
   }
   var enc = expandPrefix.concat(payload);
   var mod = polyMod(enc.concat([0, 0, 0, 0, 0, 0, 0, 0]));
-  var retChecksum = [];
-  for (var i = 0; i < 8; i++) {
+  var mod_0 = mod[0];
+  var mod_1 = mod[1];
+  var retChecksum = new Array(8);
+  for (var i = 7; i > 5; i--) {
     // Convert the 5-bit groups in mod to checksum values.
     // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
-    retChecksum[i] = simplify(and(rShift(mod, 5 * (7 - i)), [31]))[0];
+    retChecksum[i] = mod_1 & 31;
+    mod_1 >>>= 5;
+    mod_1 |= (mod_0 & 31) << 27
+    mod_0 >>>= 5;
   }
+  for (; i > 0; i--) {
+    // Convert the 5-bit groups in mod to checksum values.
+    // retChecksum[i] = (mod >> uint(5*(7-i))) & 0x1f
+    retChecksum[i] = mod_1 & 31;
+    mod_1 >>>= 5;
+  }
+  retChecksum[0] = mod_1;
   var combined = payload.concat(retChecksum);
   var ret = "";
   if (netType == true) {
@@ -368,101 +372,42 @@ function craftCashAddress(kind, addressHash, netType) {
   }
 }
 
-function and(a, b) {
-  var t = a.length - b.length;
-  c = [];
-  if (t >= 0) {
-    for (var i = 0; i < b.length; i++) {
-      c.push(a[i + t] & b[i]);
-    }
-  } else {
-    for (var i = 0; i < a.length; i++) {
-      c.push(a[i] & b[i - t]);
-    }
-  }
-  return c;
-}
-
-function xor(a, b) {
-  var t = a.length - b.length;
-  var c = [];
-  if (t > 0) {
-    b = Array(t)
-      .fill(0)
-      .concat(b);
-  } else if (t < 0) {
-    a = Array(-t)
-      .fill(0)
-      .concat(a);
-  }
-  for (var i = 0; i < a.length; i++) {
-    c.push(a[i] ^ b[i]);
-  }
-  return c;
-}
-
-function rShift(a, b) {
-  // 35 >= b >= 0
-  if (a.length === 0) {
-    return [0];
-  }
-  if (b > 31) {
-    var t = a.slice(0, -1);
-    b -= 32;
-  } else {
-    var t = a.slice(0);
-  }
-  if (b === 0) {
-    return t;
-  }
-  for (var i = t.length - 1; i > 0; i--) {
-    t[i] >>>= b;
-    // alternative code:
-    t[i] |= (t[i - 1] & ((2 << (b + 1)) - 1)) << (32 - b);
-  }
-  t[0] >>>= b;
-  if (t[0] === 0) {
-    return t.slice(1);
-  }
-  return t;
-}
-
-function add5zerosAtTheEnd(a) {
-  a = [0].concat(a);
-  for (var i = 1; i < a.length; i++) {
-    a[i - 1] |= a[i] >>> 27;
-    a[i] <<= 5;
-  }
-  return a;
-}
-
 function polyMod(v) {
-  var c = [0, 1];
-  var c0 = [0];
-  var temp = [];
+  var c_0 = 0;
+  var c_1 = 1;
+  var c0 = 0;
   for (var i = 0; i < v.length; i++) {
-    c0 = rShift(c, 35);
-    c = xor(add5zerosAtTheEnd(and(c, [7, -1])), [v[i]]);
-    if (c0.length === 0) {
+    c0 = c_0 >>> 3;
+    c_0 = c_0 & 7;
+    c_0 = (c_0 << 5) | (c_1 >>> 27);
+    c_1 &= 0x07ffffff;
+    c_1 <<= 5;
+    c_1 ^= v[i];
+    if (c0 === 0) {
       continue;
     }
-    if (c0[0] & 1) {
-      c = xor(c, [0x98, 0xf2bc8e61]);
+    if (c0 & 1) {
+      c_0 ^= 0x98;
+      c_1 ^= 0xf2bc8e61;
     }
-    if (c0[0] & 2) {
-      c = xor(c, [0x79, 0xb76d99e2]);
+    if (c0 & 2) {
+      c_0 ^= 0x79;
+      c_1 ^= 0xb76d99e2;
     }
-    if (c0[0] & 4) {
-      c = xor(c, [0xf3, 0x3e5fb3c4]);
+    if (c0 & 4) {
+      c_0 ^= 0xf3;
+      c_1 ^= 0x3e5fb3c4;
     }
-    if (c0[0] & 8) {
-      c = xor(c, [0xae, 0x2eabe2a8]);
+    if (c0 & 8) {
+      c_0 ^= 0xae;
+      c_1 ^= 0x2eabe2a8;
     }
-    if (c0[0] & 16) {
-      c = xor(c, [0x1e, 0x4f43e470]);
+    if (c0 & 16) {
+      c_0 ^= 0x1e;
+      c_1 ^= 0x4f43e470;
     }
   }
-  return xor(c, [1]);
+  return [c_0, c_1 ^ 1];
 }
 
 function rebuildAddress(bytes) {
@@ -477,19 +422,4 @@ function rebuildAddress(bytes) {
     ret = ret.concat(CHARSET[bytes[i]]);
   }
   return ret;
-}
-
-function simplify(v) {
-  if (v.length === 0) {
-    return [0];
-  }
-  var i = 0;
-  while (v[i] === 0) {
-    i++;
-  }
-  var z = v.slice(i);
-  if (z.length === 0) {
-    z = [0];
-  }
-  return z;
 }
