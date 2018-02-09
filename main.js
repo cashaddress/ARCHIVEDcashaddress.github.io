@@ -37,7 +37,7 @@ document.getElementById('correctedButton').onclick = function() {
 }
 
 document.getElementById('copy').onclick = function() {
-  this.innerHTML = 'Copied';
+  document.getElementById('copy').innerHTML = 'Copied';
   document.getElementById('resultAddress').select();
   document.execCommand('Copy');
   window.getSelection().removeAllRanges();
@@ -119,7 +119,7 @@ function setResultOldAddress(a) {
   qrcode2.makeCode(document.getElementById("resultAddress").value);
   document.getElementById("qrcode2").style = "display: inline-block;";
   document.getElementById("resultAddressBlock").style.display = "block";
-  this.innerHTML = 'Copy';
+  document.getElementById('copy').innerHTML = 'Copy';
 }
 
 function setResultCashAddress(a) {
@@ -129,7 +129,7 @@ function setResultCashAddress(a) {
   qrcode2.makeCode(document.getElementById("resultAddress").value.toUpperCase());
   document.getElementById("qrcode2").style = "display: inline-block;";
   document.getElementById("resultAddressBlock").style.display = "block";
-  this.innerHTML = 'Copy';
+  document.getElementById('copy').innerHTML = 'Copy';
 }
 
 function cleanResultAddress() {
@@ -138,5 +138,5 @@ function cleanResultAddress() {
   document.getElementById("correctedButton").style = "display: none";
   document.getElementById("qrcode2").style = "display: none;";
   document.getElementById("qrcode").style = "display: none;";
-  this.innerHTML = 'Copy';
+  document.getElementById('copy').innerHTML = 'Copy';
 }
