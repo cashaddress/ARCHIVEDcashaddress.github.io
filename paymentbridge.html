@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!-- Use this tool at your own risk!-->
+<!-- saved from url=https://bitpay.github.io/address-translator/ -->
+<!-- License: MIT https://github.com/JDonadio/address-translator/blob/ac4d953/package.json#L4 -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name=”description” content="An online tool to pay BitPay invoices without a Payment Protocol compatible wallet.">
+<title>PaymentBridge</title>
+<!--<base href="https://cashaddress.github.io/">-->
+<!--RUN LOCALLY: <base href=".">-->
+<base href="https://cashaddress.github.io/">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+<link href="./styles.bundle.css" rel="stylesheet"><style></style></head><body><app-root _nghost-c0="" ng-version="4.4.4"><div class="header">
+  <div class="header-content">
+    <!--<img alt="/*Logo name*/" class="" src="./image1.svg">-->
+    <div class="header-center">
+      <h3 class="header-title">PaymentBridge, the Payment Protocol Decoder</h3>
+      <div class="repository-link">
+        <a href="https://github.com/cashaddress/cashaddress.github.io" target="blank">
+          <img alt="Github" src="./github.png">
+        </a>
+      </div>
+    </div>
+    <!--<img alt="/*Logo name*/" class="" src="./image2.svg">-->
+  </div>
+</div>
+
+<div class="container">
+
+  <form novalidate="" class="ng-valid ng-dirty ng-touched">
+    <div class="card">
+      <div class="card-block" style="text-align: center;">
+        <h6 class="card-title">Please paste the Payment Protocol link below</h6>
+        <div class="row">
+          <div class="form-group col">
+            <div class="input-group">
+              <div style="width: 180px" class="input-group-addon">Payment Protocol link:</div>
+              <input class="form-control ng-valid ng-dirty ng-touched" id="address" onclick="this.select()" name="address" type="text">
+              <button id="pasteButton" class="btn-error-correct btn-lg-correct btn-success" onclick="var input = document.getElementById('addressToTranslate');input.focus();input.select();document.execCommand('paste');" type="button">Paste</button>
+            </div>
+          </div>
+        </div>
+        <h6 class="card-title" id="status"></h6>
+      </div>
+    </div>
+    <div id="answerbox" class="card" style="display: none;">
+      <div class="card-block" style="text-align: center;">
+        <div class="row">
+          <div id="inneranswerbox" class="form-group col">
+          <div id="timer"></div></div></div>
+      </div>
+    </div>
+    <div id="pushtxbox" class="card" style="display: none;">
+      <div class="card-block" style="text-align: center;">
+        <h6 class="card-title">Please paste the raw transaction (either broadcast or not) or TXID (of broadcast transaction)</h6>
+        <div class="row">
+          <div class="form-group col">
+            <div class="input-group">
+              <div style="width: 270px" class="input-group-addon">Raw transaction / Broadcast TXID:</div>
+              <input class="form-control ng-valid ng-dirty ng-touched" id="pushtx" onclick="this.select()" name="address" type="text">
+              <button id="paste2Button" class="btn-error-correct btn-lg-correct btn-success" onclick="var input = document.getElementById('addressToTranslate');input.focus();input.select();document.execCommand('paste');" type="button">Paste</button>
+            </div>
+          </div>
+        </div>
+        <h6 class="card-title" id="status2"></h6>
+      </div>
+    </div>
+    <button id="resetbutton" class="btn btn-outline-primary btn-lg btn-block" type="button">Reset</button>
+    </form>
+  <div style="padding-bottom: 15px" class="whatsnew">
+    What's <strong>PaymentBridge</strong>?<br>
+    PaymentBridge is a tool that allows users who don't have a Payment Protocol compatible wallet to pay BitPay invoices. You just have to paste the Payment Protocol link and use your wallet as you would do normally. After this tool shows
+    you the address and the amount, a transaction should be made and the TXID should be pasted in this tool, to complete the purchase. The payment can be cancelled in any step. It's safe to use this tool, in the worst case, you'll likely get a refund from BitPay.
+    <br>This tool is no way made in affiliation with or endorsed by BitPay.
+    <br>Everything is done on your device, except the use of BitPay's servers and using Bitcoin.com explorer to acquire the raw transaction.
+
+  </div>
+</div>
+</app-root><script src="./paymentbridge.js"></script></body></html>
