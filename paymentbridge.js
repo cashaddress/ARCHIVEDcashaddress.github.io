@@ -82,12 +82,13 @@ function parseResponse(responseText, responseStatusCode, responseStatusText) {
   } else if (json["currency"] == "BTC") {
     document.getElementById("inneranswerbox").innerHTML += "Currency: Bitcoin<br>";
   }
-  document.getElementById("inneranswerbox").innerHTML += "Minimum Fee Sat/KiloByte: " + ((Math.floor(Number(json["requiredFeeRate"]))+1)*1e-3 + 0.1).toFixed(5) + "<br>";
+  document.getElementById("inneranswerbox").innerHTML += "Minimum Fee Sat/KiloByte: " + ((Math.floor(Number(json["requiredFeeRate"]))+1)*1e3).toFixed(5) + "<br>";
   document.getElementById("timer").innerHTML += "Until deadline in seconds: " + a + "<br>";
   intervall = setInterval(changeTimer, 1000);
   document.getElementById("inneranswerbox").innerHTML += "Exact Output Amount (" + json["currency"] + "): " + (Number(json["outputs"][0]["amount"])*1e-8).toFixed(8) + "<br>";
   document.getElementById("inneranswerbox").innerHTML += "Output Address: " + json["outputs"][0]["address"]
   document.getElementById("pushtxbox").style = "display: block;";
+  document.getElementById("address").readOnly = false;
 }
 
 document.getElementById("pushtxbox").oninput = function(){
@@ -96,15 +97,10 @@ document.getElementById("pushtxbox").oninput = function(){
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState == XMLHttpRequest.DONE) {
-        console.log(this.responseText);
-        console.log(this.status);
-        console.log(this.statusText);
         try {
           document.getElementById("status2").innerHTML = JSON.parse(this.responseText)["memo"];
-          console.log("jna");
         } catch(err) {
           document.getElementById("status2").innerHTML = this.responseText;
-          console.log("ajn");
         }
     }
   }
@@ -115,35 +111,38 @@ document.getElementById("pushtxbox").oninput = function(){
       if (this.readyState == XMLHttpRequest.DONE) {
           try {
             b = JSON.parse(this.responseText)["rawtx"];
-            console.log(this.responseText);
             xhr.open('POST', document.getElementById("address").value, true);
             xhr.setRequestHeader("Content-Type", "application/payment");
-            console.log("JSON:");
-            console.log(b);
             xhr.send(JSON.stringify({"currency": currency, "transactions":[b]}));
           } catch(err) {
             // Now, try Bitcoin.com
             var xhr3 = new XMLHttpRequest();
             xhr3.onreadystatechange = function() {
               if (xhr3.readyState == XMLHttpRequest.DONE) {
-                b = JSON.parse(xhr3.responseText)["rawtx"];
+                try {
+                  b = JSON.parse(xhr3.responseText)["rawtx"];
+                } catch {
+                  document.getElementById("status2").innerHTML = "Couldn't get the transaction from TXID!";
+                }
                 xhr.open('POST', document.getElementById("address").value, true);
                 xhr.setRequestHeader("Content-Type", "application/payment");
                 xhr.send(JSON.stringify({"currency": currency, "transactions":[b]}));
               }
             }
-            xhr.open('POST', document.getElementById("address").value, true);
+            //xhr.open('POST', document.getElementById("address").value, true);
           }
       }
     }
-    xhr2.open('GET', "https://bch-insight.bitpay.com/api/rawtx/" + b, true);
+    if (currency === "BCH") {
+      xhr2.open('GET', "https://bch-insight.bitpay.com/api/rawtx/" + b, true);
+    } else {
+      xhr2.open('GET', "https://insight.bitpay.com/api/rawtx/" + b, true);
+    }
     xhr2.send(null);
   } else {
     xhr.open('POST', document.getElementById("address").value, true);
     xhr.setRequestHeader("Content-Type", "application/payment");
     xhr.send(JSON.stringify({"currency": currency, "transactions": [b]}));
-    console.log("JSON:");
-    console.log(JSON.stringify({"currency": currency, "transactions": [b]}));
   }
   document.getElementById("address").readOnly = false;
   // value + "?currency=" + currency + "&transactions[]=" + b
