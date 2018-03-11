@@ -14,6 +14,9 @@ document.getElementById("address").oninput = addrinput;
 
 function addrinput(){
   //bitcoincash:?r=https://bitpay.com/i/8tDW8m1x4DNnnUQazw69zf
+  if (document.getElementById("address").value === "") {
+    document.getElementById("resetbutton").click();
+  }
   if (document.getElementById("address").value.startsWith("bitcoincash:?r=")) {
     document.getElementById("address").value = document.getElementById("address").value.slice(15);
   }
@@ -29,8 +32,8 @@ function addrinput(){
     document.getElementById("status").innerHTML = "Can't recognize link. Make sure you pasted the correct link.";
     return;
   }
-  document.getElementById("timer").innerHTML = "";
   document.getElementById("answerbox").innerHTML = '<div class="card-block" style="text-align: center;"><div class="row"><div id="inneranswerbox" class="form-group col"><div id="timer"></div></div></div></div>';
+  document.getElementById("timer").innerHTML = "";
   document.getElementById("status").innerHTML = "";
   document.getElementById("address").readOnly = true;
   var xhr = new XMLHttpRequest();
@@ -46,6 +49,9 @@ function addrinput(){
 }
 
 function changeTimer() {
+  if (document.getElementById("timer").innerHTML === null) {
+    clearInterval(intervall);
+  }
   if (Number(document.getElementById("timer").innerHTML.slice(0, -4).slice(27)) > 0) {
     document.getElementById("timer").innerHTML = "Until deadline in seconds: " + (Number(document.getElementById("timer").innerHTML.slice(27).slice(0, -4))-1) + "<br>";
   } else {
@@ -121,7 +127,7 @@ document.getElementById("pushtxbox").oninput = function(){
               if (xhr3.readyState == XMLHttpRequest.DONE) {
                 try {
                   b = JSON.parse(xhr3.responseText)["rawtx"];
-                } catch {
+                } catch(err) {
                   document.getElementById("status2").innerHTML = "Couldn't get the transaction from TXID!";
                 }
                 xhr.open('POST', document.getElementById("address").value, true);
@@ -151,6 +157,7 @@ document.getElementById("pushtxbox").oninput = function(){
 
 document.getElementById("resetbutton").onclick = function() {
   clearInterval(intervall);
+  document.getElementById("address").value = "";
   document.getElementById("answerbox").innerHTML = '<div class="card-block" style="text-align: center;"><div class="row"><div id="inneranswerbox" class="form-group col"><div id="timer"></div></div></div></div>';
   document.getElementById("status").innerHTML = "";
   document.getElementById("answerbox").style = "display: none;";
