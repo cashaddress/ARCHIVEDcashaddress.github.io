@@ -110,46 +110,9 @@ document.getElementById("pushtxbox").oninput = function(){
         }
     }
   }
-  var b = document.getElementById("pushtx").value;
-  if (b.length === 64) {
-    var xhr2 = new XMLHttpRequest();
-    xhr2.onreadystatechange = function() {
-      if (this.readyState == XMLHttpRequest.DONE) {
-          try {
-            b = JSON.parse(this.responseText)["rawtx"];
-            xhr.open('POST', document.getElementById("address").value, true);
-            xhr.setRequestHeader("Content-Type", "application/payment");
-            xhr.send(JSON.stringify({"currency": currency, "transactions":[b]}));
-          } catch(err) {
-            // Now, try Bitcoin.com
-            var xhr3 = new XMLHttpRequest();
-            xhr3.onreadystatechange = function() {
-              if (xhr3.readyState == XMLHttpRequest.DONE) {
-                try {
-                  b = JSON.parse(xhr3.responseText)["rawtx"];
-                } catch(err) {
-                  document.getElementById("status2").innerHTML = "Couldn't get the transaction from TXID!";
-                }
-                xhr.open('POST', document.getElementById("address").value, true);
-                xhr.setRequestHeader("Content-Type", "application/payment");
-                xhr.send(JSON.stringify({"currency": currency, "transactions":[b]}));
-              }
-            }
-            //xhr.open('POST', document.getElementById("address").value, true);
-          }
-      }
-    }
-    if (currency === "BCH") {
-      xhr2.open('GET', "https://bch-insight.bitpay.com/api/rawtx/" + b, true);
-    } else {
-      xhr2.open('GET', "https://insight.bitpay.com/api/rawtx/" + b, true);
-    }
-    xhr2.send(null);
-  } else {
-    xhr.open('POST', document.getElementById("address").value, true);
-    xhr.setRequestHeader("Content-Type", "application/payment");
-    xhr.send(JSON.stringify({"currency": currency, "transactions": [b]}));
-  }
+  xhr.open('POST', document.getElementById("address").value, true);
+  xhr.setRequestHeader("Content-Type", "application/payment");
+  xhr.send(JSON.stringify({"currency": currency, "transactions": [document.getElementById("pushtx").value]}));
   document.getElementById("address").readOnly = false;
   // value + "?currency=" + currency + "&transactions[]=" + b
   //https://bitpay.com/i/XY5jbvWhajs4Djz8V9PEhH
