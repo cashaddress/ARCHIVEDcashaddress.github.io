@@ -133,6 +133,7 @@ function setResultCashAddress(a) {
 }
 
 function cleanResultAddress() {
+  window.location.hash = "";
   document.getElementById("resultAddress").value = "";
   document.getElementById("resultAddressBlock").style.display = "none";
   document.getElementById("correctedButton").style = "display: none";

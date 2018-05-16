@@ -106,25 +106,21 @@ function parseAndConvertCashAddress(prefix, payloadString) {
     }
     payloadUnparsed[i] = CHARSET_MAP[payloadString[i]];
   }
-  // func ExpandPrefix(prefix string) []byte {
-  // ret := make(data, len(prefix) + 1)
-  // for i := 0; i < len(prefix); i++ {
-  //	ret[i] = byte(prefix[i]) & 0x1f;
-  // }
-  // ret[len(prefix)] = 0;
-  // return ret;
-  // }
-  // https://play.golang.org/p/NMR2ImCmdpZ
+  var polymodConstant_0 = 0;
+  var polymodConstant_1 = 0;
   if (prefix == "bitcoincash") {
-    var expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0];
+    // 1058337025301
+    polymodConstant_0 = 246;
+    polymodConstant_1 = 1775070485;
     var netType = true;
   } else {
-    /*if (prefix == "bchtest")*/
-    var expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0];
+    // if (prefix == "bchtest")
+    // 584719417569
+    polymodConstant_0 = 136;
+    polymodConstant_1 = 603865313;
     var netType = false;
   }
-  var polymodInput = expandPrefix.concat(payloadUnparsed);
-  var polymodResult = polyMod(polymodInput);
+  var polymodResult = polyMod(payloadUnparsed, polymodConstant_0, polymodConstant_1);
   if (polymodResult[0] !== 0 || polymodResult[1] !== 0) {
     var syndromes = {};
     for (var p = 0; p < polymodInput.length; p++) {
@@ -155,8 +151,8 @@ function parseAndConvertCashAddress(prefix, payloadString) {
     throw "Can't correct errors!";
   }
   var payload = convertBits(payloadUnparsed.slice(0, -8), 5, 8, false);
-  var addressType = payload[0] >> 3; // 0 (P2PKH) or 1 (P2SH)
-  return craftOldAddress(addressType, payload.slice(1, 21), netType);
+  // payload[0] >> 3: 0 (P2PKH) or 1 (P2SH)
+  return craftOldAddress(payload[0] >> 3, payload.slice(1, 21), netType);
 }
 
 function craftOldAddress(kind, addressHash, netType) {
@@ -176,11 +172,9 @@ function craftOldAddress(kind, addressHash, netType) {
 }
 
 function CheckEncodeBase58(input, version) {
-  var b = [version];
-  b = b.concat(input);
-  var h = sha256(Uint8Array.from(b));
-  var h2 = sha256(h);
-  b = b.concat(Array.from(h2).slice(0, 4));
+  var b = [version].concat(input);
+  var h = sha256(sha256(Uint8Array.from(b)));
+  b = b.concat(Array.from(h).slice(0, 4));
   return EncodeBase58Simplified(b);
 }
 
@@ -261,22 +255,6 @@ function parseAndConvertOldAddress(oldAddress) {
   }
 }
 
-function packCashAddressData(addressType, addressHash) {
-  // Pack addr data with version byte.
-  var versionByte = addressType << 3;
-  // Those addresses are not in use!
-  /*var encodedSize = (addressHash.length - 20) / 4
-  	if ((addressHash.length-20)%4 != 0) {
-  		return []
-  	}
-  	if (encodedSize < 0 || encodedSize > 8) {
-  		return []
-  	}
-  	versionByte |= encodedSize*/
-  var data = [versionByte].concat(addressHash);
-  return convertBits(data, 8, 5, true);
-}
-
 function convertBits(data, fromBits, tobits, pad) {
   // General power-of-2 base conversion.
   var acc = 0;
@@ -307,23 +285,28 @@ function convertBits(data, fromBits, tobits, pad) {
 }
 
 function craftCashAddress(kind, addressHash, netType) {
-  var payload = packCashAddressData(kind, addressHash);
-  // func ExpandPrefix(prefix string) []byte {
-  // ret := make(data, len(prefix) + 1)
-  // for i := 0; i < len(prefix); i++ {
-  //	ret[i] = byte(prefix[i]) & 0x1f;
-  // }
-  // ret[len(prefix)] = 0;
-  // return ret;
-  // }
-  // https://play.golang.org/p/NMR2ImCmdpZ
+  // Those addresses are not in use!
+  /*var encodedSize = (addressHash.length - 20) / 4
+  	if ((addressHash.length-20)%4 != 0) {
+  		throw ""
+  	}
+  	if (encodedSize < 0 || encodedSize > 8) {
+  		throw ""
+  	}
+  	versionByte |= encodedSize*/
+  var payload = convertBits([kind << 3].concat(addressHash), 8, 5, true);
+  var polymodConstant_0 = 0;
+  var polymodConstant_1 = 0;
   if (netType == true) {
-    var expandPrefix = [2, 9, 20, 3, 15, 9, 14, 3, 1, 19, 8, 0];
+    // 1058337025301
+    polymodConstant_0 = 246;
+    polymodConstant_1 = 1775070485;
   } else {
-    var expandPrefix = [2, 3, 8, 20, 5, 19, 20, 0];
+    // 584719417569
+    polymodConstant_0 = 136;
+    polymodConstant_1 = 603865313;
   }
-  var enc = expandPrefix.concat(payload);
-  var mod = polyMod(enc.concat([0, 0, 0, 0, 0, 0, 0, 0]));
+  var mod = polyMod(payload.concat([0, 0, 0, 0, 0, 0, 0, 0]), polymodConstant_0, polymodConstant_1);
   var mod_0 = mod[0];
   var mod_1 = mod[1];
   var retChecksum = new Array(8);
@@ -343,11 +326,10 @@ function craftCashAddress(kind, addressHash, netType) {
   }
   retChecksum[0] = mod_1;
   var combined = payload.concat(retChecksum);
-  var ret = "";
   if (netType == true) {
-    ret = "bitcoincash:";
+    var ret = "bitcoincash:";
   } else {
-    ret = "bchtest:";
+    var ret = "bchtest:";
   }
   for (var i = 0; i < combined.length; i++) {
     ret = ret.concat(CHARSET[combined[i]]);
@@ -359,9 +341,8 @@ function craftCashAddress(kind, addressHash, netType) {
   }
 }
 
-function polyMod(v) {
-  var c_0 = 0;
-  var c_1 = 1;
+// If you append the prefix, c_0 = 0 and c_1 = 1
+function polyMod(v, c_0, c_1) {
   var c0 = 0;
   for (var i = 0; i < v.length; i++) {
     c0 = c_0 >>> 3;
@@ -370,9 +351,6 @@ function polyMod(v) {
     c_1 &= 0x07ffffff;
     c_1 <<= 5;
     c_1 ^= v[i];
-    if (c0 === 0) {
-      continue;
-    }
     if (c0 & 1) {
       c_0 ^= 0x98;
       c_1 ^= 0xf2bc8e61;
